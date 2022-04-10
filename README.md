@@ -1,4 +1,4 @@
-# Pulse Shape Discrimination (PSD) for the Musun experiment
+# Pulse Shape Discrimination (PSD)
 This experiment measure the muon capture rate in deuterium to find a universal low energy constant for two nucleon weak interactions 
 defined from EFT(effective field theory). Muon decay produce a large number of gamma rays and electrons The neutrons are detected by the 
 ionization of the elastically scattered recoil protons following neutron, proton scattering whereas gamma rays are detected by the ionization 

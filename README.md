@@ -12,7 +12,7 @@ This code makes template histograms by subtracting the pedestals and normalizing
 <img width="378" alt="Screen Shot 2022-04-10 at 8 09 37 AM" src="https://user-images.githubusercontent.com/27436642/162617359-bd589d76-e54f-4592-bf9f-7f74531f290d.png"></br>
 Then each pulse is fitted using both templates with efficient and quick minimization called Brent Minimization technique. The minimization function 
 is formed from the templates using the following formula:</br>
-<img width="306" alt="Screen Shot 2022-04-10 at 8 13 00 AM" src="https://user-images.githubusercontent.com/27436642/162617475-b6427f91-f890-4275-9a90-743f820df263.png"></br>
+<img width="206" alt="Screen Shot 2022-04-10 at 8 13 00 AM" src="https://user-images.githubusercontent.com/27436642/162617475-b6427f91-f890-4275-9a90-743f820df263.png"></br>
 The code uses MINUIT for fitting and based on the &chi;<sup>2</sup>/NDF we dertermine that a pulse is a neutron or a gamma pulse. 
 Shown below is a neutron pulse fitted with a neutron template (left) and a gamma template (right):</br>
 <img width="685" alt="Screen Shot 2022-04-10 at 8 16 44 AM" src="https://user-images.githubusercontent.com/27436642/162617636-26e03430-858d-42c9-a262-a676366c8931.png"></br>

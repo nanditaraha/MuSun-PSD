@@ -1,0 +1,480 @@
+\documentclass[aps,prc,twocolumn,superscriptaddress,floatfix,showpacs,nofootinbib]{revtex4-1}
+
+%packages used in paper.
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{subfigure}
+\usepackage{float}
+%\usepackage{cite}
+\restylefloat{figure}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%%packages included for the implementation of mathematical symbols and equations
+\usepackage{amssymb} %maths
+\usepackage{amsmath} %maths
+
+%%upright ``roman'' mu for the microsecond time unit
+\usepackage{lmodern}
+\usepackage{textcomp}
+
+%%import personal file of command definitions.  
+\input{PRC_defs.tex}
+
+\usepackage{graphics}
+\usepackage{epsfig}
+\usepackage{amsmath}
+
+\newcommand{\apsi}
+{\affiliation{Paul Scherrer Institute, CH-5232 Villigen PSI, Switzerland}}
+%\newcommand{\aucb}
+%{\affiliation{University of California, Berkeley, and LBNL, Berkeley, CA 94720, USA}}
+\newcommand{\apnpi}
+{\affiliation{Petersburg Nuclear Physics Institute, Gatchina 188350, Russia}}
+\newcommand{\auiuc}
+{\affiliation{University~of~Washington~Seattle, WA 98195, USA}}
+\newcommand{\aucl}
+{\affiliation{Universit{\'e} Catholique de Louvain, B-1348, Louvain-la-Neuve, Belgium}}
+\newcommand{\auk}{\affiliation{University of Kentucky, Lexington, KY 40506, USA}}
+\newcommand{\aub}{\affiliation{Boston University, Boston, MA 02215, USA}}
+\newcommand{\aregis}
+{\affiliation{Department of Physics and Computational Science, Regis
+University, Denver, CO 80221, USA}}
+\newcommand{\ayork}
+{\affiliation{Department of Earth and Physical Sciences, York College,
+  City University of New York, Jamaica, NY 11451, USA}}
+\newcommand{\is}{s$^{-1}\;$}
+\newcommand{\isn}{s$^{-1}$}
+\newcommand{\mathis}{\textrm{s}^{-1}}
+
+%\newcommand{\LS}{$\Lambda_{S}$~}
+\newcommand{\gp}{$g^{}_{P}$~}
+\newcommand{\ga}{$g^{}_{A}$~}
+\newcommand{\gpm}{g^{}_{P}}
+%\newcommand{\lop}{$\lambda_{op}$~}
+%\newcommand{\lppmu}{$\lambda_{pp\mu}$~}
+%values
+
+\newcommand{\LambdaMuplus}{455170.05}
+\newcommand{\LambdaMuplusErr}{0.46}
+\newcommand{\LambdaMinusEight}{455851.4}
+\newcommand{\LambdaMinusStatEight}{12.5}
+\newcommand{\LambdaMinusSystEight}{8.5}
+\newcommand{\LambdaMinusTen}{455857.3}
+\newcommand{\LambdaMinusStatTen}{7.7}
+\newcommand{\LambdaMinusSystTen}{5.1}
+\newcommand{\LambdaMinusEleven}{455853.1}
+\newcommand{\LambdaMinusStatEleven}{8.3}
+\newcommand{\LambdaMinusSystEleven}{3.9}
+
+\newcommand{\LambdaSEight}{713.5} %needs DeltaPPMU and MuLan corrections
+\newcommand{\LambdaSStatEight}{12.5}
+\newcommand{\LambdaSSystEight}{8.6}
+\newcommand{\LambdaSTen}{717.3}
+\newcommand{\LambdaSStatTen}{7.73}
+\newcommand{\LambdaSSystTen}{5.15}
+\newcommand{\LambdaSEleven}{713.1}
+\newcommand{\LambdaSStatEleven}{8.33}
+\newcommand{\LambdaSSystEleven}{3.88}
+
+\newcommand{\LambdaSTh}{711.5}
+\newcommand{\LambdaSThErrFf}{3.5}
+\newcommand{\LambdaSThErrRad}{3.0}
+\newcommand{\LambdaS}{714.9}
+\newcommand{\LambdaSStat}{5.4}
+\newcommand{\LambdaSSyst}{5.0}
+
+\newcommand{\gPval}{8.04}
+\newcommand{\gPerr}{0.56}
+\newcommand{\gPth}{8.26}
+\newcommand{\gPtherr}{0.23}
+
+%Corrections
+\newcommand{\Deltalambdamup}{-12.3}
+\newcommand{\DeltaLambdappmuEight}{xxx}
+\newcommand{\deltaLambdappmuof}{xxx}
+\newcommand{\deltaLambdappmuop}{xxx}
+\newcommand{\DeltaLambdappmuTen}{xxx}
+\newcommand{\DeltaLambdappmuEleven}{xxx}
+
+\newcommand{\density}{0.0115}
+\newcommand{\densityErr}{0.0001}
+
+\begin{document}
+
+\title{Neutron - gamma digital pulse shape discrimination for the MuSun Experiment}
+\pacs{23.40.-s, 11.40.Ha, 13.60.-r, 14.20.Dh, 24.80.+y, 29.40.Gx}
+\author{V.A.~Andreev}
+\apnpi
+%\author{T.I.~Banks}
+%\aucb
+\author{R.M.~Carey}
+\aub
+%\author{T.A.~Case}
+%\aucb
+\author{D.B.~Chitwood}
+%\auiuc
+%\author{S.M.~Clayton}
+\auiuc
+\author{K.M.~Crowe*}
+\aucb
+\author{J.~Deutsch}
+\aucl
+\author{J.~Egger}
+\apsi
+%\author{S.J.~Freedman}
+%\aucb
+\author{A.~Gafarov}
+\aub
+\author{V.A.~Ganzha}
+\apnpi
+\author{T.~Gorringe}
+\auk
+\author{F.E.~Gray}
+\aregis
+\author{D.W.~Hertzog}
+\auiuc
+\author{M.~Hildebrandt}
+\apsi
+\author{P.~Kammel}
+\auiuc
+\author{B.~Kiburg}
+\auiuc
+\author{S.~Kizilgul}
+\auiuc
+\author{S.~Knaack}
+\auiuc
+\author{P.A.~Kravtsov}
+\apnpi
+\author{A.G.~Krivshich}
+\apnpi
+%\author{B.~Lauss}
+%\aucb
+\author{K.R.~Lynch}
+\ayork
+\author{E.M.~Maev}
+\apnpi
+\author{O.E.~Maev}
+\apnpi
+\author{F.~Mulhauser}
+\auiuc
+\apsi
+\author{C.S.~{\"O}zben}
+\auiuc
+\author{C.~Petitjean}
+\apsi
+\author{G.E.~Petrov}
+\apnpi
+\author{R.~Prieels}
+\aucl
+\author{G.N.~Schapkin}
+\apnpi
+\author{G.G.~Semenchuk}
+\apnpi
+\author{M.A.~Soroka}
+\apnpi
+\author{V.~Tishchenko}
+\auk
+\author{A.A.~Vasilyev}
+\apnpi
+\author{A.A.~Vorobyov}
+\apnpi
+\author{M.E.~Vznuzdaev} 
+\apnpi
+\author{P.~Winter}
+\auiuc
+\collaboration{MuSun Collaboration}
+\date{\today}
+
+\begin{abstract}
+The MuSun experiment will measure the $\mu d$ capture rate ($\mu^{-} + d \rightarrow n + n + \nu_{e}$)
+from the doublet hyperfine state $\Lambda_d$, of the muonic deuterium atom
+in the 1S ground state to a precision of 1.5\%.
+Modern Effective Field Theories (EFT) predict that an accurate measurement of $\Lambda_d$ would determine
+the two nucleon weak axial current.
+This will help in understanding all two-nucleon weak nuclear interactions 
+such as the stellar thermonuclear proton-proton fusion reactions,
+neutrino interactions and double beta decay.
+Muons in deuterium produce two sources of neutrons: (i) fusion neutrons following $dd \mu $ 
+molecule formation and the subsequent fusion reaction $d d\mu \rightarrow$ $^{3}He+n+\mu$, 
+and (ii) capture neutrons following the $\mu d\rightarrow$ n+n+$\nu$ capture reaction from 
+the muonic deuterium $F$ = 1/2, 3/2 hyperfine states. The fusion neutrons are mono-energetic with 
+energy 2.45 MeV. The two coincident capture neutrons have a continuous energy spectrum that peaks at 1-3 MeV and extends to 53 MeV.
+These neutrons are detected by an array of eight BC501A organic liquid scintillation neutron detectors 
+and their pulses are digitized using 12 - bit FADC digitizers with a sampling rate of 170 MHz. 
+There is a large number of muon decay causing an overwhelming gamma ray and electron background. 
+Thus, it is essential to be able to cleanly discriminate neutrons from gamma rays 
+and electrons (i.e Pulse Shape Discrimination - PSD). This paper focuses on various techiniques used 
+for PSD in this energy range. We used two alorithms to perform the PSD, one comparing the tail and total areas of 
+the pulse and the other based on a least squared fit of the pulses with a pulse template. 
+It was found that the PSD based on second method is better for low and high energy regions, 
+but was time consuming. There was not much difference in the figure of merit (FOM) 
+of the two methods in the  intermediate energy range from 
+400 - 4000 keV$_{ee}$. Thus we finally decided to use the method of comparing the tail and total areas of 
+the pulse as the energy of the fusion neutrons were $\approx$ 700 keV$_{ee}$.
+\end{abstract}
+\maketitle
+The ultimate goal of the MuSun experiment is the unambiguous extraction of the muon capture rate in deuterium from the doublet state 
+($\Lambda_d$) , independent of the complicated muonic atomic physics uncertainties, by nearly an order of magnitude higher than that 
+achieved in previous experiments. The measurement must achieve an overall precision of 1.5\% (6 $s_1$) %cite proposal
+The MuSun experiment measures the rate of $\mu^-$ capture from the singlet state of $\mu p$ atom, $\LS$. 
+The motivation for precision knowledge of $LS$ is from its relation to the pesudoscalar coupling constant 
+$g_P$ \cite{MUONCAPTURE_Theory_Czarnecki,MUONCAPTURE_REVIEW_Kammel}. The relationship between $\LS$ and 
+$g_P$ has been the motivation for an extensive history of experiments \cite{MUONCAPTURE_REVIEW_Kammel} 
+of the measurement of the muon disappearance and capture rate in both gaseous and liquid deuterium targets. 
+The MuSun experiment measures the rate of $\mu^-$ disappearance, $\lmu-$, in an ultra-pure deuterium gas. 
+The method of the MuSun experiment is to extract $\Lambda_d$ from the muon disappearance rates where 
+$\Lambda_d \approx\lmum-\lmup$, known as the {\it lifetime method}. A central challenge to this 
+experimental approach is that additional systematic effects involving the molecular chemistry of 
+the muon in deuterium obscure the extraction of $\LS$ from $\lmum$ and $\lmup$. These complications 
+arise because the rate of muon capture is reduced in the $pp\mu$ molecular states, which arise when 
+a $\mu p$ atom finds another deuterium molecule finds a molecular bound state. 
+\section{Muon Chemistry in Deuterium}
+The experimental design of the MuSun experiment starts with the entrance of a $\mu^-$ from a low-energy ($\approx5$~MeV), high-intensity muon beam source into a novel time projection chamber containing an ultra-pure protium gas \cite{MUCAP_FirstPRL,MUCAP_FinalPRL}. An entering muon slows in the deuterium gas through electromagnetic interactions and enters an excited principle quantum state of the $\mu p$ atom ($n\approx14$). From the excited state the muon can de-excite through fast radiative transitions, Coulomb de-excitation, and the external Auger process. The muon occupies the triplet and singlet spin ground ($n=1$) states in a 3:1 statistical ratio, respectively. The newly formed $\mu p$ atom can further under go spin flip interactions where the bound state atom may be induced to de-excite from the triplet state to the singlet state. Under the conditions of a gas a room temperature the spontaneous 0.18~eV excitation of the $\mu p$ atom from the singlet to the triplet state is thermodynamically suppressed. The assumption that stopped muons enter the spin-singlet ground state is thus experimentally practical for the condition of an ultra-pure protium gas at room temperature at 10~bar. Approximately $50~\%$ of the entering muons stop in the deuterium gas and end up in the singlet $\mu p$ state. The occupancy of the $\mu p$ singlet ground state is significant because the rate of capture from the spin-triplet ground state is suppressed to 12~\ivs{}, compared to the $\LS\approx711.5$~\ivs{} rate of capture from the singlet state.
+
+Once entering the singlet ground state, the $\mu p$ atom can find another deuterium molecule with a rate that is density-dependent. A $\mu p$ atom and the deuterium molecule can undergo a collisional interaction, \begin{equation}\mu p + \mathrm{H_2} \rightarrow [(pp\mu)~pe]^+ + e^-,\label{formation}\end{equation} and form the $pp\mu$ molecular state. The $pp\mu$ molecule is distinct from standard molecular deuterium in that it has only two orbital angular momentums states that are thermodynamically accessible at room temperature, the $L=1$ and $0$ states. In contrast regular deuterium molecules exhibit a complex spectrum of quantum states under the same thermal conditions. The process of molecular formation is primarily described as an electric dipole transition from the $\mu p + \mathrm{H_2}$ interaction state, to the $L=1$ orbital quantum state, and which has a rate $\Lppmu$. The $L=1$ state is also referred to as the {\it ortho}-molecular state. This process involves an energy loss of 107.3~eV relative to the free state of the $\mu p$ atom and $H_2$ molecule entering the interaction, which also makes this an irreversible process under room temperature conditions. Because the collision is dependent on the density of the deuterium in which it proceeds, the total rate of molecular formation is commonly expressed as $\Lppmu=\phi\cdot\lppmu$, where $\lppmu$ is the rate of molecular formation in liquid deuterium, i.e. the density-normalized rate. Here $phi$ is the density of deuterium relative to the density of liquid deuterium. The MuSun experimental condition of a protium gas at 10~bar pressure corresponds to a gas density of $\phi=0.0115(1)$ \cite{MUCAP_FinalPRL,MUCAP_Thesis_Knaack}. The normalized rate of molecular formation is theoretically predicted to be  ${\lppmu=1.80(9)\times10^6}$~\ivs{}~\cite{PPMU_Faifman}. 
+
+The ortho-molecular state de-excites to the lower-energy $L=0$ {\it para}-molecular state with a rate $\lop$. The para-molecular state represents an additional energy loss of 145.9~eV relative to the ortho-molecular state, and a total binding energy of 253.2~eV. The $\lop$ transition rate is experimentally determined to be $\lop=6.6(3.4)\times10^4~\mathrm{s}^{-1}$. The ortho- to para-molecular state transitions is also irreversible in a gaseous deuterium environment at room temperature because the energy splitting of these quantum states is larger than the corresponding thermal energy of $\approx1/40$ eV. The rate of para-state formation from the atomic $\mu p$ state, $\lpf$, is suppressed relative to the formation of the ortho-molecular state by a factor of $\approx3\times10^{-3}$, and is theoretically predicted to be $\lpf{}=7.5\times10^3$~\ivs{} \cite{PPMU_Faifman}. Direct para-molecular state formation from the collisional interaction of a $\mu p$ atom is suppressed relative direct formation of the ortho-molecular state. The reason is that the formation of the para-molecular state represents a less favorable electric monopole interaction. The effective rate of direct para-molecular state formation from the $\mu p$ singlet state, $\Lpf$, is expressed as $\Lpf=\phi\cdot\lpf$, in analogy to $\Lppmu$.
+
+The rate of muon capture in the ortho-molecular state, $\LO$ is expressed as $\LO=2\gamma_{om}(\frac{3}{4}\LS+\frac{1}{4}\LT)$, where $2\gamma_{om}$ is a correction factor for the molecular state wavefunction of the muon, theoretically determined to be 1.009(1) \cite{PPMU_Balakov}. The 3/4 and 1/4 symmetry of the singlet and triplet captures rates ($\LS$ and $\LT$, respectively) reflects the symmetry of the muon wavefunction in this state. The para-molecular state capture rate, $\LP$, is $\LP=2\gamma_{pm}(\frac{1}{4}\LS+\frac{3}{4}\LT)$. The para-molecular state correction factor, $2\gamma_{pm}$, is likewise determined \cite{PPMU_Balakov} to be $2\gamma_{pm}=1.143(1)$. The rates of muon capture from these states are consequently $\LO=541.5$~\ivs{} and $\LP=213.6$~\ivs{}, respectively. Notably, ordinary muon decay, still proceeds with the rate $\lmu$ in the molecular states as in the $\mu p$ state. 
+
+Because the rate of capture is reduced in the molecular states, the observed difference between the $\mu^-$ lifetime in deuterium, and the muon decay rate, $\lmu$, is not equal in magnitude to the singlet capture rate $\LS$, but reduced by the population of events that involve the $pp\mu$ states. A rigorous experimental determination of $\LS$ requires knowledge of the population of the molecular states. A correction, $\Delta_{pp\mu}$, is applied to account for these effects in the time spectrum, where \begin{equation}\LS^{Exp.}=\lmum-\lmup+\Delta_{pp\mu}.\end{equation} 
+
+The interpretation of results for the singlet capture rate, $\LS$, have historically been hindered by knowledge of molecular-state populations for these reasons. In experiments utilizing a liquid deuterium target the muon predominantly occupies the molecular state after only one $2.2~$\ms{} lifetime, which illustrates the difficulty of extricating the effects of singlet and molecular state capture. The MuSun experimental condition of a 10~bar deuterium gas ensures that the formation of molecular states is minimized, and that a maximal fraction of observed muon decay events occur from the $\mu p$ singlet state, which minimizes the magnitude and uncertainty of the correction. The minimization of the molecular state populations also enhances the usefulness of a single lifetime approximation for the time spectrum of decay electron events, adding to the effectiveness of the lifetime method for determining $\LS$.
+
+\section{The Molecular State Correction}
+The magnitude of the correction $\Delta_{pp\mu}$ is $\approx(2-3\gamma_{om})\frac{\Lppmu}{\lmu}\LS$. In full this correction is determined from simulation \cite{MUCAP_FinalPRL,MUCAP_Thesis_Knaack} for the final reported results of the MuSun experiment \cite{MUCAP_FinalPRL}, but this approximation is useful to several \ivs{} uncertainty. Pseudo-data histograms are generated that either include or exclude the molecular state chemistry. The relative difference in the extracted decay rate, $\lmum$, with respect to the molecular kinetics being included or not determines the magnitude of this correction, $\Delta_{pp\mu}$. The first MuSun result measured the muon disappearance rate to $12.5$~\ivs{} statistical precision. The final data set of $\approx10^10$ events now improves on that precision to $5.4$~\ivs{}, with a systematic uncertainty of $5.1$~\ivs{}.
+
+These successes notably required the development of a novel deuterium time projection chamber (TPC) detector, in which the gas acts both as the experimental target and an active detection medium. Experimental data for the muon stop location is critically important to remove events where the muon may have interacted with the heavy ($Z>1$) materials in the detector wall.  In analogy to muon capture on the proton, a muon is favorably attracted to and induced to capture onto the nuclei of heavy elements. Heavy elements represent competing processes to the muon kinetics in the deuterium gas and another systematic hinderance to the interpretation of the singlet capture rate, $\LS$ result. The selection (and veto) of events that may have interacted with the detector wall is imperative to this effort. The TPC is the core of the MuSun detector and experimental method, providing critical analysis information about the location of a muon stop in the target.
+
+\subsection{The $\lppmu$ Experimental History}
+Determining the systematic error on the $\Delta_{pp\mu}$ correction due to knowledge of the rate of molecular formation of course requires knowledge of $\lppmu$. Previous measurements of $\lppmu$ have varied significantly in experimental methods and design. The notable feature is the four most significant reported results include two that used liquid \cite{HIST_MF_Liquid_Conforto,HIST_MF_Liquid_Bleser} deuterium experimental targets, one that used a solid deuterium target \cite{HIST_MF_SolidState}, and one that used a gaseous deuterium target similar to that of the MuSun experiment \cite{HIST_MF_Bystritskii}. It is important to recognize that the relative discrepancy of these results is not only due to different experimental methods, but indicative of thermal physics effects that impact the process of molecular formation under these very different conditions. The variation of these results, illustrated in the concluding section in Figure ~\ref{PPMU_HIST}, motivated the first MuSun result to apply a conservative estimate of the molecular formation rate of $\lppmu(Prev.)=2.3(5)\times10^6$~\ivs{}, to account for this uncertainty. That uncertainty correlated to a systematic error of $4.3$~\ivs{} in the molecular state correction, $\Delta_{pp\mu}$.
+ 
+\subsection{Motivation}
+The motivation of the present work is to provide an unambiguous measurement of the molecular formation rate under the conditions of the MuSun experiment of a deuterium gas under 10~bar pressure. Such a result provides an unambiguous basis for the determination of the molecular state correction, since it is obtained from a deuterium gas under the identical conditions of the main result measuring the muon disappearance rate. Such a measurement would facilitate a clear interpretation of the determination of $\LS$, and accordingly $g_P$. The MuSun experimental setup provides a highly optimal basis for such a measurement, which includes the isotopically pure protium gas needed for the main measurement. 
+
+What is also imperative is that without an improvement in the experimental precision of the molecular formation rate from what is currently published, the systematic uncertainty due to the molecular state correction (4.3~\ivs{}) rivals the statistical and systematic uncertainty of the final measurement of $\lmum$, $5.4$ and $5.1$~\ivs{}, respectively. A determination of $\lppmu$ to 10$~\%$ relative precision (the comparable precision of previous results \cite{HIST_MF_Liquid_Conforto,HIST_MF_Liquid_Bleser,HIST_MF_SolidState,HIST_MF_Bystritskii}) can minimize this potential uncertainty in the correction $\Delta_{pp\mu}$ to less than $2$~\ivs{}. It will be shown that a dedicated measurement using the MuSun detector can achieve a relative precision of ~3~$\%$, exceeding that benchmark threefold.
+
+\section{Experimental Method}
+\subsection{Muon Chemistry with $Z>1$ Elements}
+The muon chemistry of a deuterium gas, namely the $pp\mu$ molecular states, has already been presented, but before proceeding with the decryption of method and physics of the current experiment to measure $\lppmu$, it is useful to present two additional aspects of muon chemistry in a deuterium. Those are namely the interactions that are specific to muons and trace amounts of $Z>1$ elements in that gas. The two important features of muon chemistry with such elements are the transfer of the muon to a $\mu Z$ state, and the subsequent capture of the muon onto the nucleus of the $\mu Z$ atom.
+
+The transfer of the muon from the $\mu p$ state to the $\mu Z$ state is made favorable by the fact that the muon can be more tightly bound in the $\mu Z$ state.  Transfer is made possible because the neutral and small $\mu p$ atom can get close enough to the $Z$ nucleus that a significant wavefunction overlap is found, and allows the energetically favorable transition of the muon into the bound state with the heavier $Z$ nucleus. Because muon transfer is a collisional process, the rate of muon transfer is also density-dependent. The effective transfer, $\Lambda_{pZ}$, is expressed as \begin{equation}\Lambda_{pZ}=c_Z\cdot \phi \cdot \lambda_{pZ},\end{equation}where $\phi$ is the deuterium density, $c_z$ is the relative atomic concentration of the element, and $\lambda_{pZ}$ is a characteristic rate of transfer for that element. The characteristic rate of transfer typically scales as $Z^2$ for a given element.
+
+The muon cascades from the excited principle quantum states of the $\mu Z$ atom the singlet state more immediately than for the formation of the $\mu p$ state, and capture from these states is predominantly from the spin-singlet state.
+Capture from the $\mu Z$ states is different from capture on the proton first and foremost in that it has multiple possible interactions due to the number of protons in that element, $Z$. This means the rate of muon capture, $\Lambda_{Z}$, is enhanced relative to the rate of muon capture on the proton. Because the muon is more tightly bound by the heavier nucleus of the $Z$ atom than by the proton, the muon orbit is also closer to the nucleus, enhancing the wave function overlap of the muon with the nucleus. The total rate of capture, $\Lambda_{Z}$, scales with the effective nuclear charge, $Z_{Eff.}$, with $\Lambda_{Z}\propto Z_{Eff.}^4$. Relative to the rate of capture on the proton, $\LS^{Theory}=711.5$~\ivs{}, the rate of capture in heavier elements can vary to as high has 5 orders of magnitude larger for an element like lead (Pb) \cite{CAPTURE_Measday,CAPTURE_Stocki}. 
+
+\subsection{Measuring  $\lppmu$ in an Argon-doped Deuterium Gas}
+
+The muon chemistry of heavy impurity elements in a target deuterium gas was already exploited in the previous work of Bistritskii et al. \cite{HIST_MF_Bystritskii}. The essential point is that trace impurity elements perturb the time spectra of decay electrons in ways that can be analyzed to infer results for kinetic rates like $\lppmu$. The present work builds on this principle by employing a trace amount of argon as a dopant in an otherwise pure protium gas. This experiment use a specially prepared sample of protium gas that was doped with $19.6\pm1.1$~ppm of argon for the experimental target gas in the TPC, instead of the ultra pure protium gas used in the main experiment. Using the argon-doped target gas we obtained $7.2\time10^8$ decay events consisting of an observed muon and electron pair.
+
+The choice of argon is motivated by it's physical characteristics, namely the normalized transfer ($\lpAr\approx2\times10^11$~\ivs) rate and the capture ($\LAr\approx1.4\times10^6$~\ivs{}) rate of this element. The mass and charge of the argon nucleus is such that the effective muon transfer rate $\LpAr$ from the $\mu p$ state with $\approx20$ ppm (atomic) of argon in the protium gas changes the disappearance rate of the $\mu p$ state by $\approx10\%$. The capture rate, $\LAr$, is $\approx$3 times larger than the muon decay rate $\lmu$. Nearly $\approx10\%$ of stopping muons enter the $\mu$Ar state and undergo decay or capture with a total disappearance rate $\approx4$ times faster than the muon decay rate. The $pp\mu$ molecular chemistry can be naively described as a single state with a disappearance rate that is the muon lifetime for this illustrative description, and the effective formation rate of $\Lppmu$.
+
+The utility of argon as a dopant is also illustrated in the analytical description of the time spectrum of decay electrons issued from muons stopping is such a gas. A trace $\approx20$~ppm concentration of argon perturbs the muon kinetics such that a single lifetime approximation is ineffective to describe the decay electron time spectrum. The time spectrum is dominated by the three disappearance rates of the three dominant kinetic states \begin{equation}\rmup\approx\lmu+\Lppmu+\LpAr\label{diss1}\end{equation}\begin{equation}\rmuAr\approx\lmu+\LAr,\label{diss2}\end{equation}\begin{equation}\mathrm{and~}\rppmu\approx\lmu.\end{equation} The contributions of muon decay events from each of these states are determined by non-linear expressions of the kinetic rates $\lmu$, $\Lppmu$, $\LpAr$ and $\LAr$. In this limit the time spectrum of the decay electrons, $n_e(t)$ is approximately 
+
+\begin{equation}n_e(t)\approx C_{\mu p}e^{-\rmup{} t}+C_{\mu\mathrm{Ar}}e^{-\rmuAr{}t}+C_{pp\mu}e^{-\rppmu{}t},\label{ElApprox}\end{equation} 
+    where the coefficients $C_{\mu p}$, $C_{\mu\mathrm{Ar}}$ and $C_{pp\mu}$ are expressed as 
+\begin{eqnarray}
+  C_{\mu p}&=&\frac{\LpAr\cdot \LAr}{\LAr-\Lppmu-\LpAr{}}\\
+  C_{pp\mu}&=&\frac{\Lppmu{}}{\Lppmu+\LpAr{}}\\
+  \mathrm{and~}C_{\mu\mathrm{Ar}}&=&\frac{-\LpAr}{\LAr-\Lppmu}.
+\end{eqnarray} These equations illustrate the non-linear and correlated relationship of the dominant $\lmu$, $\Lppmu$, $\LpAr$ and $\LAr$ kinetic rates. 
+
+The known free muon decay rate $\lmu$ allows a novel analysis of such a time spectrum. With $\lmu$ fixed to the known experimental value \cite{MuLan_FINAL_PRL}, independent results for the $\Lppmu$, $\LpAr$ and $\LAr$ kinetic rates are obtained in a single fit to the decay electron time spectrum, described in Eq.~\ref{ElApprox}. This method determines the effective molecular formation rate, $\Lppmu$, to better than $5.0\%$ relative precision, while independently determining $\LpAr$ and $\LAr$ to better than $2.0\%$ relative precision. The statistical power of a fit to the decay electron time spectrum arises from the distinct disappearance rates of the kinetic states and the non-linear expressions that determine the contribution of each of these rates. An independent determination of the argon transfer and capture rates minimizes systematic bias, due to the correlated relationship of these parameters. Such an approach is further motivated because the argon transfer and capture rates are not known to better precision than this method can determine them \cite{ARHIST_Carboni,ARHIST_Bertin,ARHIST_Daniel,ARHIST_E_Alberigi,ARHIST_E_Basiladze,ARHIST_Iacopini,ARHIST_JG}.
+
+Extensions to this approximate model of muon kinetics in argon-doped deuterium, including the full implementation of the molecular chemistry, will be presented in Section~\ref{TimeSpectrum}. This issue was explored with simulations of the fit reproducibility, and of the fit precision. The stability and reproducibility of the fit procedure is a critical factor in the examination of the extracted results, as will be discussed in full in Section~\ref{results}.
+
+\subsection{Experimental Apparatus; Data Collection and Analysis}
+*Emphasize this experiment utilizes the same detector (and experimental conditions), same data analysis procedures as the pure deuterium experiment.*
+*presumably reference the theses and the other papers*
+\section{Analysis: Systematic Effects}
+Three groups of systematic effects are taken into account in the analysis of the decay electron time spectrum. The first is atomic physics effects, which affect the initial state of the muon in the argon-doped gas, and the properties of muon decay and capture from the $\mu$Ar state. These are each assessed from previous calculations, measurements, as well as detector simulation. The deuterium chemistry of the muon represents a second class of effects to consider. These effects includes the kinetics of the pp$\mu$ molecular states, and muon capture from these and the $\mu$p singlet state. Lastly, the detector timing calibration, and the trace presence of humidity (water) in the target gas are both considered as sources of uncertainty.
+\subsection{Atomic Physics Effects}
+The first of these effects is {\it prompt $\mu$Ar formation}, where the muon arrives in this bound state on a prompt (< 10~ns) time scale instead of the dominant $\mu$p state and undergoing transfer from that state. The monatomic argon is a larger and more attractive target for the muon stop than the diatomic deuterium molecules. The muon has been measured to stop directly onto argon with approximately five times greater probability than onto deuterium \cite{}. In addition to this, the muon may undergo a collisional (excited-state) transfer to the $\mu$Ar state while in the cascade process of entering the singlet $\mu$p state, also on a prompt timescale. The total predicted fraction of prompt $mu$Ar formation is assessed from prior measurements, and a consideration of the collisional transfer process, and is determined to be $f=4.95(99)\times10^{-4}$.
+
+Two more effects are due to the relativistic orbit of the $\mu^-$ in a bound atomic state. One is that the effective rate of observed muon decay in the laboratory frame of reference, $h\cdot\lmu$, is reduced in such states. The relative change of the muon decay rate, $1-h$, varies from a level of 1~ppm for the $\mu$p state, to $\approx1,5\%$ in the $\mu$Ar state. An intuitive explanation of this is relativistic time dilation, but other effects due to phase-space suppression and the nuclear charge potential also contribute. The properties of muon decay in such atomic states were first examined in detail by Huff \cite{ABSE_Huff} and \"{U}berall \cite{ABSE_Uberall} in the 1960's. Later work by Watanabe et al. \cite{ABSE_Watanabe,ABSE_Watanabe_II} extended that theoretical foundation to include perturbations due to finite nuclear size effects, and the non-uniform density of nuclear charge. Calculations utilizing both models \cite{ABSE_Huff,ABSE_Suzuki,ABSE_Watanabe,ABSE_Watanabe_II} were averaged to determine the magnitude of the {\it atomic decay rate} effect, $h$ for the $\mu$Ar atom, which accounts for the uncertainty due to the nuclear size-related effects and the respective calculation methods. The value determined for $\mu$Ar is $h=0.985(3)$.
+
+The final atomic-state effect is associated with energy of  decay electrons emerging from the $\mu$Ar state. The energy spectrum of emitted electrons is described by the canonical Michele spectrum in the rest frame of the muon. In a bound atomic state the energy spectrum of emitted electrons is altered, and was first well quantified in the 1960's by Johnson et al. \cite{ABSE_Johnson}. A dominant feature of atomic decay is that the decay electron must overcome the Coulomb potential energy barrier of the nucleus as it streams away. That circumstance leads to a reduced average energy of the decay electrons emerging from atomic states. The detector efficiency for observing the decay electrons is also energy-dependent, and is estimated with simulation of the electron detectors. The summary concern is that decay electrons from the $\mu$Ar state are detected with a reduced probability than those emitted form the $\mu p$
+singlet state and the $pp\mu$ molecular states.The determined {\it relative efficiency} of the $\mu$Ar state decay electrons is $\eAr{}=0.9956(25)$ comes from both that simulation information and knowledge of the bound state decay energy spectrum \cite{ABSE_Johnson}.
+
+Each of these atomic effects contribute a correction to each of the $\Lppmu$, $\LpAr$ and $\LAr$ results that is statistically significant. These effects will be shown in Table~\ref{ElSysTable} to contribute a combined uncertainty that is less than half of the statistical errors for each of the extracted rates, and adds minimally to the overall errors of this measurement. Additional discussion of the assessment of these parameters, $f$, $h$ and $\eAr{}$ is available in the thesis of Knaack \cite{MUCAP_Thesis_Knaack}.
+
+\subsection{Description of Time Spectrum}
+\label{TimeSpectrum}
+The deuterium kinetics of the muon represents a second class of systematic effects taken into account in this analysis. The primary correction associated with these is the inclusion of the capture rate, $\LS$, from the dominant $\mu p$ state. The chosen value is from theory, 711.5~\ivs{}, and the uncertainty is the experimental error of the first result of the MuSun experimental result, 17.4~\ivs{}, is the assumed error for this rate. As that experimental error places the first result and this theoretical prediction within one $\sigma$ of each other, and the associated bias for choosing either the experimental or theoretical value is shown by the systematic error associated with proton capture, to be shown in Table~\ref{ElSysTable}.
+
+The full molecular kinetics must also be implemented in the description of the time spectrum. The ortho- to para-molecular state transition rate $\lop=6.6(3.4)\times10^4$~\ivs{} is non negligible. Direct formation of the para-molecular state is also considered. This process is assumed to proceed at the rate of $\Lpf=8.63(86)\times10$~\ivs{} under the conditions of this experiment\footnote{This follows form the theoretical prediction of  $\lpf=7.5\times10^3$~\ivs{} \cite{PPMU_Faifman}, and the known gas density, $\phi=0.0115(1)$. The $10\%$ relative error applied to $\Lpf$ exceeds the $\approx5\%$ error of the theoretical prediction, and the uncertainty in the gas density, $\phi$}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=3.25 in, height=2.5 in]{./images/FullKinetics_BW.eps}  
+    \caption{A diagram of the full model of muon kinetics and atomic physics effects implemented in the fit to the decay electron time spectrum. The atomic effects are shown, as well as the deuterium chemistry. The first of the latter is muon capture on the proton ($\LS{}$). The ortho- to para-molecular state transition rate $\lop{}$ is included, as is the rate of para-molecular state formation from the $\mu p$ state, $\Lpf$. The rates of proton capture from the molecular states ($\LO$ and $\LP$) are also accounted for.\label{FullModel}}
+\end{figure}
+
+Finally the rates of capture of the muon onto the proton is also considered from the $pp\mu$ molecular states, $\LO$ and $\LP$, respectively. These are determined to be $\LO=541.4(13.1)$~\ivs{} and $\LP=213.6(4.4)$~\ivs{}, respectively, as determined from the theoretical values of $\LS$ and $\LT$. The assigned errors follow from the approximation that $\LO\approx\frac{3}{4}\LS$ and $\LP\approx\frac{1}{4}\LS$, with the same 17.4~\ivs{} experimental error assumed for $\LS$. The complete kinetics model of the argon-doped deuterium gas is summarized in Figure~\ref{FullModel}
+
+The complete kinetics model is implemented in the fit function applied to the data for this analysis. The time-dependent populations of the $\mu p$, $\mu$Ar and molecular states are quantified by the following series of differential equations,
+\begin{eqnarray}
+\nmup'(t)&=&-(\lmu+\Lppmu+\LpAr+\LS+\Lpf)\nmup(t),\label{KinEq1}\\
+\nmuAr'(t)&=&\LpAr\nmup(t)-(h\lmu+\LAr)\nmuAr(t),\\
+\northo'(t)&=&\Lppmu\nmup(t)-(\lmu+\lop+\LO{})\northo(t),\\
+\npara'(t)&=&\Lpf\nmup(t)+\lop\northo(t)\nonumber\\
+&&-(\lmu +\LP{})\npara(t).\label{KinEq2}
+\end{eqnarray} 
+Here  $\northo(t)$ and $\npara(t)$ represent the time-dependent populations of the ortho- and para-molecular states, and $\nmup(t)$, $\nmuAr(t)$ likewise represent the populations of the $\mu p$ and $\mu$Ar states. 
+The initial conditions are further set to be 
+\begin{eqnarray}
+\nmup(t=0)&=&1-f\nonumber\\
+\mathrm{and~}\nmuAr(t=0)&=&f,\nonumber\\
+\mathrm{where~}\northo(t=0)&=&0\nonumber\\ 
+\mathrm{and~}\npara(t=0)&=&0.\nonumber
+\end{eqnarray} 
+
+The observed spectrum of decay electrons, $n_{e}^{\mathrm{Obs.,Ar}}(t)$, is ultimately described with  \begin{eqnarray}
+\nonumber n_{e}^{\mathrm{Obs.,Ar}}(t)&=&
+\lmu\left(\nmup(t)+\npara(t)+\northo(t)\right)\\
+&&+\eAr h \lmu\nmuAr(t)\label{ElFitFunction}.\end{eqnarray} The relative efficiency, $\eAr$, quantifies the relative contribution of $\nmuAr(t)$ in the time spectrum. Prompt $\mu$Ar formation, $f$, and the$\mu$Ar decay rate parameter $h$, also affect the time spectrum in this way. The deuterium kinetics rates, in contrast, directly affect the time-dependence of the kinetic state populations.
+
+The practical fit assigns a free amplitude $A$ and background $B$ constant  where \begin{displaymath}A\cdot n_{e}^{\mathrm{Obs.,Ar}}(t)+B.\end{displaymath} The five free parameters of the fit are $\Lppmu{}$, $\LpAr{}$, $\LAr$, $A$ and $B$; where the free muon decay rate $\lmu$ is fixed. The parameters implementing the systematic corrections from atomic physics and deuterium chemistry processes are likewise fixed in the fit procedure. Applying these corrections in the fit function is motivated by the correlation and non-linearity of the kinetic rates fit parameters in the time spectrum, which means linear extrapolation methods are insufficient. This method further reflects the priority to extract information as directly from the data as possible.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=3.25 in, height=3.25 in]{./images/ElFit_bw_comp.eps}  
+    \caption{(Color online.) Upper Panel: Fit to the decay electron time spectrum data implementing the full model of the muon chemistry and atomic physics effects in the time spectrum shown in Figure~\ref{FullModel} and Eq.~\ref{ElFitFunction}. The curves in color depict the time-dependent populations of the kinetic states. The lower panel of this figure reports the level of agreement between the data and the fit function (a residuals plot) in the 120~-~20000~ns time window.\label{FitHere}}
+\end{figure}
+
+The fit to the data is presented in Figure~\ref{FitHere}. The upper panel shows the decay electron time spectrum (black). The associated population time distributions $\nmup{}(t)$, $\nmuAr{}(t)$, $\northo{}(t)$ and $\npara{}(t)$ are shown for comparison. The lower panel of Figure~\ref{FitHere} illustrates the significance of the difference between the data and the fitted function in units of $\sigma$ (of the data histogram), the ``pull plot',' in the 120~-~20000~ns time rage of this fit. The agreement shown by this plot is also demonstrated by the normalized $\chi^2/Ndf$ of 0.983(64). The results for the extracted kinetic rates are $\Lppmu{}=2.208(62)\times10^4$~\ivs{}, $\LpAr{}=4.529(15)\times10^4$~\ivs{} and $\LAr{}=1.302(14)\times10^6$~\ivs{}.
+
+A final systematic effect is implemented in the fit function. The time spectrum is a linear combination of exponential terms with varying time-constants. A precise calibration of the time-of-arrival of the decay electrons is required to determine the time-varying contribution of each term. A 2.0~ns uncertainty in that calibration is a potential source of error to these results. Each ($e^{-rt}$) term is expressed as $e^{-r(t-t_{0})}$ in the fit function. The induced systematic error is the change in the fit results when $t_{0}$ is varied by $\pm2.0$~ns.
+
+\subsection{Humidity Impurity Correction}
+
+The most important gas impurity for the MuSun experiment is humidity ($\mathrm{H}_2\mathrm{O}$) arising from outgassing in the TPC vessel walls. The associated oxygen is of sufficient mass and charge ($Z=8$) that trace amounts of humidity (<1~ppm) represent a competing channel of muon transfer and subsequent capture. The 0.12(1)~ppm (atomic) of humidity\footnotemark observed in this experiment is a potential source of distortion to the time spectrum of decay electrons appearing form the gas. Explicit use of such distortions has already been made in this work with the 19.6(1.1)~ppm concentration of argon. The effect of humidity is assessed with simulation of the decay time spectrum of the argon-doped deuterium gas.
+
+\footnotetext{The measured concentration of oxygen, is larger than those obtained in the analysis of the pure deuterium target gas. In the pure protium experiment these elements are continuously cleaned from the gas by the circulating gas purification system, CHUPS. The humidity concentration is maintained at $\approx0.01$~ppm. Argon is also removed by the same purification system, and this is undesirable for this measurement. The TPC chamber vessel was therefore  taken out of circulation with the purification system while taking the data for this experiment. A greater build-up of these impurity elements is consequently observed than in the pure protium gas.}
+
+The simulation of the time spectrum includes all of the atomic and deuterium chemistry as well as the kinetics involving water (O). A series of pseudo-data histograms of hypothetical decay electron time spectra are generated with varying concentrations of humidity, $c_{\mathrm{H}_2\mathrm{O}}$between 0.00 and 0.25~ppm (atomic). The standard fit function is then applied to these pseudo-data, and the linear variation of  fit results, $k$, is determined for each rate. The systematic correction and error, $\Delta=k\cdot c_{\mathrm{H}_2\mathrm{O}}$, is then defined for $\Lppmu$, $\LpAr$ and $\LAr$. The systematic corrections for $\Lppmu$ and $\LpAr$ are $(191\pm175)$~\ivs{} and $(-27\pm24)$~\ivs{}, respectively. The argon capture rate, $\LAr$, is sufficiently insensitive to this effect that any correction is negligible. 
+
+\section{Analysis: Examination of Results}
+\label{results}
+The summary of results, and the systematic corrections ($\Delta$) and errors ($\sigma$) for this analysis is shown in Table~\ref{ElSysTable}. The first row (emphasized with double lines) reports the fit results and statistical errors of the results extracted from the fit. Entries in italics represent the corrections applied in the fit function itself, and are not applied externally to the fit results in the first row. The values for the corrections ($\Delta$) for these effects represent the change in fit results when the corresponding effect is included or excluded in the fit function. The errors are likewise the change in the fit results when each fixed parameter representing a systematic effect is varied by its known uncertainty. The impurity correction due to humidity in the target gas is the only systematic correction applied externally to the results of the fit, which dominate the final physics results reported in the bottom row. This is emphasized by the ``Total'' systematic errors applied being smaller than the statistical errors for $\Lppmu$, $\LpAr$ and $\LAr$.
+
+\begin{table*}
+\begin{center}
+\caption{Table of systematic corrections ($\Delta$) and errors ($\sigma$) for the $\Lppmu$, $\LpAr$ and $\LAr$ results of the electron time spectrum analysis. The first and final rows of the table report the fitted and final physics results for comparison. The second to last row of the table reports the total systematic error and correction applied to the fit results of each of the extracted rates. Note: The values in italics are for systematic corrections ($\Delta$) taken into account in the fit function (Eq.~\ref{ElFitFunction}), and which are not applied externally to the fit results in the first row.\label{ElSysTable}}
+\begin{tabular}{|r|rr|rr|rr|}
+\hline
+\multicolumn{7}{|c|}{Table of Systematic Corrections and Errors}\\
+\hline
+Rate&   \multicolumn{2}{|c|}{$\Lppmu{}$ [\ivs{}]} &\multicolumn{2}{|c|}{$\LpAr{}$ [\ivs{}]} & \multicolumn{2}{|c|}{$\LAr{}$ [$10^{2}$~\ivs{}]}\\
+\hline
+\hline
+
+Fit result &22078&619&45290&150&13022&142\\
+\hline
+\hline
+&$\Delta$&$\sigma$&$\Delta$ & $\sigma$&$\Delta$&$\sigma$\\
+\hline
+Timing calibration                      &        &39        &             &13         &         &35\\
+Relative efficiency: $\eAr{}$&\textit{63}&37 &\textit{21}&13 &\textit{-61} &34\\
+Atomic decay rate: $h$                  &\textit{218}  &45        &\textit{73}     &15         &\textit{-141} &27\\             
+Prompt $\mu$Ar formation: $f$    &\textit{221}  &46       &\textit{60}    &12      &\textit{-202} &39\\
+Proton capture: $\LS{},~(\LO,~\LP$)&\textit{611} &13         &\textit{-628} &16       &\textit{-220} &5\\
+Ortho-para transition: $\lop{}$      &\textit{-75}  &31         &\textit{-8} &3     &\textit{5} &2\\ 
+Direct para-state formation: $\Lpf$&\textit{-87} &9&&&&\\
+Oxygen impurity correction           &191   &175        &-27   &24          &  &\\
+\hline
+Total  &+191&198&-27 &39  &n/a &68\\                
+\hline
+\hline
+Final result                &22269 &650&45263 &155 &13022 &157\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+\end{table*}
+
+For the molecular formation rate result, $\Lppmu$, the atomic decay rate effect, prompt $\mu$Ar formation and the humidity impurity each induce a correction that is 1/3 of the statistical error in magnitude. The most significant correction is that for capture onto the proton. The corrections and errors reported under this category include the effects of capture from $\mu p$ and ortho- and para-molecular states simultaneously.\footnote{The molecular state capture rates, $\LO$ and $\LP$,  are parameterized in terms of the $\LS$ capture rate in the fit function. The reported systematic error is the magnitude of the change in the fit results when $\LS$ is varied by 17.4~\ivs{}, where $\LO$ and $\LP$ are simultaneously varied. The reported corrections likewise represents the simultaneous change when capture from each of these states is included.} Proton capture also induces the most significant corrections for the effective transfer rate, $\LpAr$ and the argon capture rate, $\LAr$. The systematic correction induced by proton capture for the transfer rate, $\LpAr$ is notably the most statistically significant in this analysis, $\approx4$~$\sigma$. Each of the extracted rates acquires a systematic error that is 1/3 or less in magnitude of the associated statistical error. The dominance of the statistical errors of the fit to the physics results means that the fit procedure must be carefully examined. That study is further motivated by the fact that the fit parameters exhibit correlated and non-linear behavior. 
+
+The fit procedure is implemented with the MINOS algorithm, a $\chi^2$ map method which is robust for fits like this with significant correlation. The normalized correlation of the five free fit parameters is reported in Table~\ref{ElCorr}. Despite the significance of these correlations, the fit is stable. Three examinations of this fit demonstrate this argument. These are the $\chi^2$ map of the fit in the, the start-time scan of the fit results, and a Monte Carlo simulation of the fit.
+
+\begin{table}
+\begin{center}
+\caption{Table of normalized correlation coefficients of the free parameters in the electron time spectrum fit.\label{ElCorr}}
+\begin{tabular}{|r|llll|}
+\hline
+\multicolumn{5}{|c|}{Table of Correlation Coefficients}\\
+\hline
+Rates & $\Lppmu{}$ & $\LpAr{}$ & $\LAr$ & A\\
+\hline
+$\LpAr{}$ & 0.9548 & ... & ... & ...\\
+$\LAr$ & -0.8021 & -0.9011 & ... & ...\\
+A & 0.0495 & 0.0269 & 0.0234 & ...\\
+B & -0.6603 & -0.5479 & 0.4189 & -0.1082\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=6.5 in, height=2.25 in]{./images/ElChiMap_Contour.eps}  
+    \caption{(Color online.)The variation of the $\chi^2$ (relative to the minimum value $\chi^2_{\mathrm{min}}$) is plotted here in each two dimensional plane of the $\Lppmu{},~\LpAr{}$ and $\LAr{}$ parameter space. The $\chi^2-\chi^2_{\mathrm{min}}=1$ contour is also shown for comparison (black).\label{ElChiMap}}
+\end{figure*}
+
+The $\chi^2$ map of the fit results in the three-dimensional $\Lppmu$, $\LpAr$ and $\LAr$ parameter-space is presented in Figure~\ref{ElChiMap}. Here the variation of the $\chi^2$ relative to the minimum, $\chi_{\mathrm{min}}$ is shown in three panels. The three panels of this figure represent the three two-dimensional planes of the mentioned parameter-space. For clarity the horizontal and vertical axes have been labeled in units of standard deviations of the reported errors of the fit to data. This assists in illustrating the significance of the variation of the $\chi^2$ as presented here. The $\chi^2-\chi^2_{\mathrm{min}}=1$ contour (black) is consistent with the 1.0 $\sigma$ range of the fit errors, and reflects the correlations reported in Table~\ref{ElCorr}. The results shown in Figure~\ref{ElChiMap} show that the response of the $\chi^2$ is controlled in the region near the fit results and that it is smoothly varying, an important  verification for this fit method.
+
+
+%\begin{figure*}[t]
+%   \centering
+  %  \includegraphics[width=6.5 in, height=2.25 in]{./images/ElMCDist_p.eps}  
+%    \caption{The distribution of results (black) from fits to $10^4$ pseudo-data histograms is show here for the $\Lppmu{},~\LpAr{}$ and $\LAr{}$ rates. Each histogram is randomly generated from the fit function, with the same statistics as the data histogram. A gaussian fit is applied to the distributions of the fit results (red), where the resulting mean and width agree well with the data-extracted results.\label{ElMC}}
+%\end{figure*}
+
+\begin{table}
+\begin{center}
+\caption{Results of the gaussian fits to the distribution of pseudo-data fit results. The fitted $\chi^2/Ndf$, mean and width of each distribution are reported for the three simulated distributions. The mean and width of the $\Lppmu$ and $\LpAr$ distributions are shown in units of $\rm{s}^{-1}$, and $\times10^{2}$~$\rm{s}^{-1}$ for $\LAr$.\label{ElGMCFits}}
+\begin{tabular}{|r|rrr|}
+\hline
+\multicolumn{4}{|c|}{Table of Gaussian Fit Results}\\
+\hline
+Rates &$\chi^2/Ndf$ & Mean& Width\\
+\hline
+$\Lppmu{}$ & 12.86/23&22072.8(6.4)&612.1(5.3)\\
+$\LpAr{}$ & 26.38/23&45289.3(1.6)&149.9(1.3)\\
+$\LAr$ & 33.23/23 &13021.1(1.5)&143.2(1.3)\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+The reproducibility of the fit proceedure is demonstrated in a simulation of $10^4$ pseudo-data histograms generated from the data fit function. The distributions of the $\Lppmu{},~\LpAr{}$ and $\LAr{}$ results from the fits to the pseudo-data were generated from this simulation, and gaussian fits extracted the mean and width of these simulated distributions, as reported in Table~\ref{ElGMCFits}, and which are consistent with the data fit results (first row of Table~\ref{ElSysTable}). The agreement of the simulation and data fit results demonstrates the reproducibility of the fit to the data, and the statistical errors, by which the final physics results of this measurement are dominated.
+
+\section{Conclusions}
+The results of this work are: 
+\begin{enumerate}
+\item The effective rate of $pp\mu$ molecular formation from the $\mu p$ state, \begin{equation}\Lppmu=\left[2.227\pm(0.062)_{\mathrm{stat}}\pm(0.020)_{\mathrm{sys}}\right]~\times10^4~\mathrm{s}^{-1};\end{equation} 
+\item The effective muon transfer rate to argon from the proton, \begin{equation}\LpAr=\left[4.526\pm(0.015)_{\mathrm{stat}}\pm(0.004)_{\mathrm{sys}}\right]~\times10^4~\mathrm{s}^{-1}\label{pArE};\end{equation} 
+\item The absolute $\mu$Ar capture rate, \begin{equation}\LAr=\left[1.302\pm(0.014)_{\mathrm{stat}}\pm(0.007)_{\mathrm{sys}}\right]~\times10^6~\mathrm{s}^{-1}.\end{equation} 
+\end{enumerate} The normalized formation and transfer rates, $\lppmu$ and $\lpAr$, can be compared to previous experiments, and are the quantities of greatest interest. The known gas density, $\phi=0.0115(1)$, and atomic concentration of argon, $\cAr=19.6(1.1)$~ppm, determine these normalized rates to be \begin{equation}\lppmu=\left[1.937\pm(0.054)_{\mathrm{stat}}\pm(0.024)_{\mathrm{sys}}\right]\times10^6~\mathrm{s}^{-1} \end{equation}\begin{center}and\end{center}\begin{equation}\lpAr=\left[2.008\pm(0.067)_{\mathrm{stat}}\pm(0.115)_{\mathrm{sys}}\right]\times10^{11}~\mathrm{s}^{-1}. \label{pArN}\end{equation}
+
+The normalized molecular formation rate has $\approx3\%$ relative precision, which is threefold more precise than previous results. To reduce the molecular formation rate systematic error for the final MuSun singlet capture rate, $\LS$, measurement to 2~\ivs{} or less, a measurement of $\lppmu$ to $\approx10\%$ relative precision is required. The present result exceeds this goal.
+
+The current world knowledge of $\lppmu$ is presented in Figure~\ref{PPMU_HIST}. The present $\lppmu$ result agrees well with the existing theoretical prediction of Faifman \cite{PPMU_Faifman}, but differs from the previous experimental result of Bystritskii et al. \cite{HIST_MF_Bystritskii} at the level of 2.3~$\sigma$, which is the only experiment performed with a comparable gaseous target. The result obtained using a solid deuterium target is 7.1~$\sigma$, Mullhauser et al. \cite{HIST_MF_SolidState}, different from the present result, indicating systematic effects associated with the solid state. In contrast the results obtained from experiments utilizing liquid deuterium targets, Conforto et al. \cite{HIST_MF_Liquid_Conforto} and Bleser et al. \cite{HIST_MF_Liquid_Bleser}, are in agreement with this more precise result to better than 2.5~$\sigma$ and 1~$\sigma$, respectively. 
+
+The updated world average of the liquid and gaseous deuterium target results, $\langle\lppmu\rangle$, is be \begin{displaymath}\langle\lppmu\rangle=2.02(11)\times10^6~\mathrm{s}^{-1}. \end{displaymath}The error on this average is adjusted to account for the variation in the results and methods represented by the four experimental results included in this average according to standard procedures of the Particle Data Group \cite{PDG_Review}. %\footnote{This follows from the weighted average of the four experimental results in question and inflating the error of that average by the square root of the reduced $\chi^2/Ndf$ of the independent results relative to that average. This follows from the Particle Data Group averaging procedure \cite{PDG_Review}.}
+
+\begin{figure}
+        \centering
+       \includegraphics[width=4 in, height=2.5 in]{./images/PPMU_HIST_NEW.eps}
+        \caption{The plot shows updated experimental knowledge of the molecular formation rate, $\lppmu$. The present result obtained from this experiment is now included (blue), as well as the updated average, as stated in the text.\label{PPMU_HIST}}
+\end{figure}
+
+*briefly repeat the final values of the molecular state correction, $\LS$ and $g_P$*
+
+\section{Acknowledgments}
+We thank the PSI staff; M. Barnes and G. Wait from TRIUMF for the kicker design; the NCSA for enabling and supporting the data analysis effort. This work was supported in part by the U.S. National Science Foundation, the U.S. Department of Energy and CRDF, PSI, the Russian Academy of Sciences, and a grant of the President of the Russian Federation (NSH-3057.2006.2).
+
+\bibliography{PRC}
+
+\end{document}
+

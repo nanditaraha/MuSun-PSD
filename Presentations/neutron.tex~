@@ -1,0 +1,2424 @@
+%\documentclass{article}
+%\usepackage{graphicx,dblfloatfix}
+%\usepackage[margin=2.5cm]{geometry}
+%\usepackage{amsmath, amssymb, graphics, setspace}
+%\usepackage[fleqn]{amsmath}
+%\begin{document}
+\chapter{Neutron Data Analysis}
+% command to make a pdf is - pdflatex *.tex
+% For one line comments - still learning latex 
+
+%Very Imp - names of macros and root files used in my analysis.Root Path -file  /home48/grads/nandita/musun/run4/hist/try32541.root
+%Macro for half is /home48/grads/nandita/musun/run4/hist/FigureOfMerit_half.C  and peak is FigureOfMeritTrue.C etc.
+%A good PSD for showing off  /home48/grads/nandita/musun/mu_run4/src/uiuc/macros/EventTree/MTA_psd_st.root 
+
+This chapter deals with the neutron data analysis and has been divided in two sections.
+The first section emphasises the preparation of data from the neutron detectors, including the 
+energy calibration of the counters, the procedure and results for discriminating 
+neutrons from gamma rays, definitions of fusion/capture neutrons and production of time and energy spectra 
+for fusion/capture neutrons. The second section describes the least-squares fit to the time spectrum of the fusion neutrons. 
+
+A large number of muons decay to electrons which cause an overwhelming gamma ray backgrounds. 
+Thus, it is essential to be able to cleanly discriminate neutrons from gamma rays. 
+The next challenge is to discriminate a monoenergetic fusion neutron from other sources of neutrons. 
+The other neutron sources that could contaminate the fusion neutron selection is due to background neutrons 
+that arise from  muon captures in the walls of the TPC and surrounding materials. This is overcome by extracting 
+neutrons only from muons stopped in deuterium (i.e. within the fiducial volume of the TPC).
+The ability to discriminate neutrons from gamma rays relies on the scrupulous study of the pulse shapes of each 
+and the distinction between fusion neutrons and capture 
+neutrons depend on several factors like neutrons from muons stops in the TPC, energy of the neutron etc.
+
+\section{Data Preparation}
+
+The software analysis of neutron data was done in two stages. The first stage was called \textit{MU} and the second stage 
+was called \textit{MTA}.
+In the first stage i.e. \textit{MU} level of the software 
+three files were generated from the midas input file which were as follows\\
+(i) the first file ($\approx$ 0.05 GB) containing histograms for the detector systems, \\
+(ii) the second file  containing trend plots for diagnostic purposes, \\ 
+(iii) the third file ($\approx$ 1.6 GB) containing ROOT tree files corresponding to each detector system 
+along with important attributes (like peak time, energy etc.) of pulses from each detector. \\
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.45\textwidth}{!}{\includegraphics{spline.png}}
+\resizebox*{0.5\textwidth}{!}{\includegraphics{psdWindow_slowTotal.png}}
+\end{tabular}
+\caption{ Left: A pulse after cubic spline by a factor of 20. Right: Windows showing definition of 
+total integral from three samples to left to 20 samples to the right of the peak time $t_p$. Also shows a slow integral definition 
+showing the tail - spanning from 5 samples to 20 samples to the right of the peak time $t_p$ }
+\label{psdST}
+\end{center}
+\end{figure}
+
+Data from the neutron counters was read out using 12 - bit FADC digitizers.
+It was then, saved in a derived MIDAS databank called \textit{NDET}. 
+The raw neutron data was saved in the form of islands that was a group consecutive samples 
+ around 70 samples long (i.e. about 420 ns) such that an island mostly consisted of one waveform pulse 
+(there could be seldom cases of double pulses too). 
+Data sampling was done by 170 MHz clock and it is known that the particle arrival time is 
+independent of the digitized phase of the clock. Thus, the time distribution of the maxima of the pulse 
+for times in between consecutive clock ticks is a uniform distribution.
+This time was called the true time of the pulse on an island. To obtain this true time interpolation was done to 
+% cite - Detailed report of the Mulan measurement of positive muon lifetime and determination of Fermi constant - V. Tishchenko et al.
+estimate the intermediate values between successive data samples. This was accomplished using splining after re-sampling data 
+by a factor of 20. This was done using the TSpline3 method of ROOT and then various parameters 
+like, amplitude, pedestal, peak time, total area, number of samples etc. were assigned to each pulse. 
+The left panel of figure ~\ref{psdST} shows the waveform pulse after using spline.
+All this was done in the \textit{MU} level of the software in a module called \textit{MNeutronFadcC}.
+A brief description of all these parameters are listed in the table ~\ref{tab:ndetPara}.
+
+%\newcommand*{\thead}[1]{\multicolumn{1}{c}{\bfseries #1}}
+\begin{table}[h]
+%\centering
+\begin{tabular}{|l|l|}
+\hline
+\multicolumn{1}{|c}{\textbf{Parameter}} & \multicolumn{1}{|c|}{\textbf{Description}} \\
+%\textbf{Parameter}} & \textbf{Description}\\
+\hline 
+Channel       & An integer from 0 to 7 identifying which neutron counter was triggered.\\        
+\hline                      
+Number     & The number of samples on a single\\
+of samples           &island recorded by the digitizer.\\ 
+\hline
+           & The pedestal was defined as the median of the \\
+ Pedestal  & first three samples of the pulse.\\
+\hline
+    & The time corresponding to the peak sample, shown as\\ 
+Peak Time         & t$_p$ in the right panel of figure ~\ref{psdST}\\
+\hline
+               & A typical run that creates a MIDAS file collects data in time segments\\ 
+Block Time     & (about 100 ms long)called blocks or MIDAS events.  \\ 
+               & The time of collection each block is called block time.\\
+\hline
+ Peak Sample    & The largest sample on an island or raw pulse.\\
+\hline
+   & The pedestal subtracted area of the entire waveform.\\
+Total Integral & Defined as a time window from t$_p$ - 3 samples to t$_p$ + 20 samples,\\ 
+                &  as shown in the right panel of figure ~\ref{psdST}. \\
+\hline
+                  & The pedestal subtracted area of the tail of the pulse. Several time\\
+Various           &  windows are defined for a tail. For e.g. slow integral 30 is defined\\
+Slow Integrals     &  as a time window from t$_p$ + 5 samples to t$_p$ + 20 samples\\              
+\hline
+  & A Boolean returning true when the pulse is outside \\ 
+ Overflow       & the 0 to 1.2 V range of the FADC input\\
+\hline
+Samples  & A C++ vector that saves every sample of the island \\
+\hline
+
+\end{tabular}
+\caption{The table explains various attributes of a waveform pulse.}
+\label{tab:ndetPara}
+\end{table}
+
+The \textit{TMusunNuetronPulse} module then saves all the properties described in table ~\ref{tab:ndetPara} 
+in the Musun Event Tree, which helps in 
+forming ROOT trees saved in the tree files. This tree file is finally used as an input for the 
+analysis in the next stage i.e. the \textit{MTA} level, where a lot of neutron data analysis has been done.
+
+This\textit{TMusunNeutronPulse} module, also saved some additional useful parameters like threshold energies etc. for each neutron detector. 
+The major difference between the \textit{MU} and the \textit{MTA} level is that data is collected and saved block by block 
+in \textit{MU}, where as in event trees for \textit{MTA} data is stored muon by muon. 
+Each moun event was pile up protected in a time window of -40000 ns to  +40000 ns relative to the muon entrance time. 
+The TDC data is compressed in this stage after fitting and removing unwanted pulses and so redundant 
+data is lost in this level. Clusters and tracks for TPC pulses are also formed in this stage. 
+Data preparation, production of various time, energy spectra, neutron/gamma pulse discrimination, 
+definition/event selection of fusion neutrons, capture neutrons etc. were all done in this level of analysis. 
+
+%\begin{document}
+
+%\chapter{Neutron/Gamma - Discrimination}
+\subsection{Neutron/Gamma - Discrimination}
+The neutron counters see a large gamma rays due to muon decay. 
+The neutrons are detected by the ionization of the elastically scattered recoil protons where as gamma rays are 
+detected by the ionization of the recoil electrons produced due to Compton scattering.
+Since heavier particles have higher specific ionization, the protons 
+produce more delayed fluorescence light compared to the electrons which results in a larger tail for 
+neutron pulses compared to gamma ray pulses. 
+This distinguishing feature is used to discriminate neutrons from gamma rays which was called Pulse Shape Discrimination (PSD). 
+One of the major tasks was to cleanly distinguish neutrons from gamma rays.
+Various techniques employing this underlying principle were used to extract neutrons 
+from all pulses detected by the neutron counters.
+
+
+\subsubsection{PSD using tail and total areas }
+%\hspace{7 pt}
+% Done till here
+In this method of PSD, the total area of the pulse was compared to the tail area to determine if the pulse was a neutron or a 
+gamma ray. All definition of total and slow integrals i.e. tail areas described in table ~\ref{tab:ndetPara} were defined with respect to the peak time. 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+ \graphicspath{{./Figures/}}
+  \resizebox*{0.55\textwidth}{!}{\includegraphics{half_def.png}}
+\end{tabular}
+\caption{Time windows showing definitions of half of peak time (or half time) based PSD. The half time is shown ${t_o}^'$ in blue and 
+the total and slow integrals get a little shifted relative to the half time.}
+\label {halfDef}
+\end{center}
+\end{figure}
+There were several definitions of slow integrals based on different time windows that were tested to obtain the 
+best definition for an efficient PSD.\\ 
+\begin{table}[h]
+\begin{tabular}{|l|l|}
+\hline
+\multicolumn{1}{|c}{\textbf{Parameter}} & \multicolumn{1}{|c|}{\textbf{Definition}} \\
+\hline
+Slow Integral 20     &  A time window from t$_p$ + 3 samples to t$_p$ + 20 samples\\
+\hline
+Slow Integral 25     &  A time window from t$_p$ + 4 samples to t$_p$ + 20 samples\\
+\hline
+Slow Integral 30     &  A time window from t$_p$ + 5 samples to t$_p$ + 20 samples\\
+\hline
+Slow Integral 35     &  A time window from t$_p$ + 6 samples to t$_p$ + 20 samples\\
+\hline
+Slow Integral 40     &  A time window from t$_p$ + 7 samples to t$_p$ + 20 samples\\
+\hline
+\end{tabular}
+\caption{The table explains various definitions of slow integrals.}
+\label{tab:slowDef}
+\end{table}
+The definitions used are listed in the table ~\ref{tab:slowDef} with respect to the peak time t$_p$.
+
+PSD using tail and total areas was done using the following two procedures:
+\begin {itemize}
+\item \textbf{PSD based on Peak time}: The peak time was the time corresponding to the re-sampled bin, 
+after using cubic spline, that recorded the maximum ADC value. The original definitions of slow and total integrals were used
+\item \textbf{PSD based on half of the peak time}: This was a new method employed with the intend of 
+obtaining better optimization of the 
+PSD. Cubic spline with a resampling factor of 20 was used for this case too. In 
+this method the windows for slow and total areas were defined with respect to the bin corresponding 
+to half of the peak sample value of a pulse. This is shown in figure ~\ref{halfDef}. In this figure ${t_o}^'$ 
+denotes time corresponding to half the peak sample value. The windows used in table ~\ref{tab:slowDef} got shifted due 
+to the shift in  ${t_o}^'$ relative to  ${t_p}$
+\end {itemize}
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{1.0\textwidth}{!}{\includegraphics{psdWin_ch1.png}} 
+\end{tabular}
+\caption{Variation of PSD ratio with total integral - 
+and various cuts for counter NU3. 
+Upper most region corresponds to after pulses and the lower region corresponds to gamma rays. The region in between 
+are the neutrons.}
+\label {psdRatio}
+\end{center}
+\end{figure}
+The plot showing the relative area of the tail of the pulse versus the total area ~\ref{psdRatio} helped 
+in discriminating a neutron from a gamma ray. Since neutrons have a longer tail the middle region in figure 
+~\ref{psdRatio} corresponds to the neutrons and the lower region corresponds to gamma rays.
+The relative area of the tail of the pulse was just the ratio of tail to total area 
+and was called PSD ratio for convenience. Based on figure ~\ref{psdRatio}, three energy ranges 
+were defined for which neutrons were extracted depending on the minimum and  maximum value of the PSD ratio. 
+This range was unique for each detector and table ~\ref{tab:rangeEnergy} 
+lists the maximum and minimum limits of these values for various ranges of energy (or total integral). 
+There was also a third region above the region corresponding to neutrons, which denoted some strange pulses 
+that appeared to be very noisy and distorted in shape. These were due to after pulsing in detectors that were old.  
+As a result of aging, the vacuum in them got worse causing a small leakage of molecular ions producing these strange pulses.
+For example, the old Bicrons (NU3, ND3, NU6, NU11 and ND11) suffered from after pulses. 
+The plot of total area versus PSD ratio for all eight counters are shown in figure  ~\ref{psdRatioAll}. 
+This clearly shows that the third uppermost band corresponding after pulses is prominent in 
+the above mentioned detectors - NU3, ND3, NU6, NU11 and ND11.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{1.0\textwidth}{!}{\includegraphics{psd_ST.png}} 
+\end{tabular}
+\caption{Variation of PSD ratio with total integral for all eight neutron counters.}
+\label {psdRatioAll}
+\end{center}
+\end{figure}
+%Trying to place figs well
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+ \graphicspath{{./Figures/}}
+  \resizebox*{0.7\textwidth}{!}{\includegraphics{fom_def.png}}
+\end{tabular}
+\caption{Definition of Figure of Merit.}
+\label {psd}
+\end{center}
+\end{figure}
+%done till here
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\hline
+\textbf {Counter}  &\textbf {Energy Range}    & \textbf {Min. PSD ratio}  & \textbf {Max. PSD ratio} \\              
+\hline
+         & 1300 - 3000    & 0.103	& 0.222 \\
+ NU3     & 3000 - 6000	  & 0.079	& 0.180 \\ 
+         & 6000 - 25000	  & 0.077	& 0.150 \\ 
+\hline
+         & 1600 - 3700	& 0.091		& 0.180 \\
+ ND3     & 3700 - 6000	& 0.061		& 0.160 \\ 
+         & 6000 - 25000	& 0.051		& 0.150 \\ 
+\hline
+         & 1300 - 3700	& 0.122		& 0.215 \\
+ NU6     & 3700 - 6000 	& 0.085		& 0.200 \\
+         & 6000 - 25000	& 0.087		& 0.190 \\ 
+\hline   
+         & 1500 - 2800	& 0.122		& 0.200 \\
+ ND6     & 2800 - 6000	& 0.117		& 0.180 \\ 
+         & 6000 - 15000	& 0.115		& 0.165 \\
+\hline   
+         & 1600 - 3000	& 0.079		& 0.177 \\
+ NU11    & 3000 - 6000	& 0.058		& 0.160 \\ 
+         & 6000 - 25000	& 0.061		& 0.140 \\
+\hline     
+         & 1750 - 2800	& 0.128		& 0.213 \\
+ ND11    & 2800 - 6000	& 0.127		& 0.200 \\ 
+         & 6000 - 25000	& 0.124		& 0.190 \\
+\hline       
+         & 1400 - 2800	& 0.122		& 0.212 \\
+ NU14    & 2800 - 6000	& 0.118		& 0.190 \\ 
+         & 6000 - 15000	& 0.117		& 0.180 \\ 
+\hline    	
+         & 1350 - 2800	& 0.14		& 0.200 \\
+ ND14    & 2800 - 6000	& 0.105		& 0.180 \\ 
+         & 6000 - 15000	& 0.102		& 0.160 \\
+\hline   
+\end{tabular}
+\caption{The table shows the energy equivalent range of PSD for all neutron detectors, `D' stand for downstream, `
+U' for upstream, and the number stands for the position in $\phi$. It also shows the maximum and minimum value of PSD ratio for each 
+range of energy }
+\label{tab:rangeEnergy}
+\end{table}
+\paragraph{Figure of Merit}\\
+\hspace{7 pt}
+To understand the efficiency of the ability to distinguish neutrons from gamma rays a parameter called the figure of merit (FOM) was defined.
+The slow integral was plotted against the total integral and for a very small energy range of the total integral, the 
+slow integral was projected as shown in figure ~\ref{psd}
+The resulting plot was a double Gaussian curve with two peaks, the larger one to the left corresponding 
+to the gamma rays (its peak position designated as $centroid_g$)
+and the smaller right peak corresponding to neutrons (its peak position shown as $centroid_n$).
+The sigma of the Gaussian for gamma rays was called $width_g$ and that for neutrons was called $width_n$. It is evident that smaller values of 
+ FWHM(Full width at half maximum) would mean a better resolution and thus contribute to a better PSD. 
+Also if the separation between the two peaks is more
+the discrimination is better. Thus the FOM was evaluated using the definition of equation ~\ref{eq:fom}
+\begin{equation}\label{eq:fom}
+FOM = \frac{centroid_n - centroid_g}{2.35(width_g + width_n)}
+\end{equation} 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+ \graphicspath{{./Figures/}}
+  \resizebox*{0.51\textwidth}{!}{\includegraphics{fom_peak.png}} 
+  \resizebox*{0.51\textwidth}{!}{\includegraphics{fom_half.png}} 
+\end{tabular}
+\caption{Figure of Merit using peak time (left) and half of peak time (right) for detector NU3}
+\label {fomPeak}
+\end{center}
+\end{figure}
+Fitting the double Gaussian function was done using MINUIT and the initial guesses for peak values and sigmas were calculated using the
+ TSpectrum class of ROOT that searches effectively for peaks in a spectrum as shown in figure ~\ref{psd}.
+This was done for various definitions of slow integral (i.e. slow integral 20, slow integral 25, slow integral 30,
+slow integral 35 and slow integral 40).
+The plot of the variation of FOM with energy for all definitions superimposed using 
+peak time algorithm is shown in the left panel of figure ~\ref{fomPeak}
+To investigate the pulse shape discrimination (PSD) using the half time method, the FOM's using equation ~\ref{eq:fom}
+was calculated for all definition of slow integral i.e. slow integral 20, slow integral 25, slow integral 30,
+slow integral 35 and slow integral 40. All these were superimposed to compare with each other. 
+The right panel of figure ~\ref{fomPeak} shows these FOM's for the half time method 
+definitions plotted against energy and the right panel shows the same for the peak time method.
+From these plots it was evident that the slow integral 30 from peak time method was a good choice, as it showed the most 
+stable PSD. Thus in our further analysis the tail area was chosen to be the slow integral 30 from peak time method. 
+
+\\
+Each detector had a different energy equivalent range corresponding to an optimal PSD. It was difficult to go too low or high in energy. 
+There was also a minimum threshold energy for each detector and a maximum energy beyond which the pulse type 
+could not be clearly identified. The ambiguity in high energy was due to the fact that 
+the FADC's being 12 bits could read only upto 1.2 V and pulses with energies greater than 1.2 V corresponded to an overflowing pulse. 
+It was hard to recover the overflowing pulse and thus discriminate a neutron from a gamma in this high energy region. 
+The energy equivalent range of all eight detectors used in the experiment are listed in table ~\ref{tab:range_st}.
+%moved table here for better arrangement of figs
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\hline
+{\bf Counter}        & {\bf Min Range(keVee)}	& {\bf Max Range(keVee)}\\
+\hline
+ NU3            & 212.42			& 4084.97 \\
+ ND3            & 257.65			& 4025.77 \\
+ NU6           	& 209.39			& 4025.77 \\
+ ND6      	& 242.72			& 2427.18 \\
+ NU11           & 242.06			& 3782.15 \\
+ ND11           & 234.27			& 3346.72 \\
+ NU14          	& 324.07			& 3935.19 \\
+ ND14      	& 312.50			& 4491.73 \\
+
+\hline
+\end{tabular}
+\caption{The table shows the energy equivalent range of PSD for all neutron detectors, `D' stand for downstream, 
+`U' for upstream, and the number stands for the position in $\phi$.}
+\label{tab:range_st}
+\end{table}
+
+
+
+\subsubsection{Pulse digitization using template fitting }
+A pulse template is the average of several raw pulses from each detector, which had a 
+much better time resolution than the raw pulse. The time, amplitude and areas of the raw pulses could be determined much more 
+accurately, by least-square fitting with the templates created. The true time of the hit could be found more accurately 
+within a clock tick using pulse templates. 
+% cite - Detailed report of the Mulan measurement of positive muon lifetime and determination of Fermi constant - V. Tishchenko et al.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+  \graphicspath{{./Figures/}}
+  \resizebox*{0.45\textwidth}{!}{\includegraphics{pseudo.png}} 
+  \resizebox*{0.45\textwidth}{!}{\includegraphics{pseudoTrue.png}} 
+\end{tabular}
+\caption{Pseudo time $t'$ distribution of detector NU3 (left) 
+  and true time mapped from normalized running integral of pseudo times (right)}
+\label {pseudo}
+\end{center}
+\end{figure}
+
+It is known that this true time is independent of the phase of the 
+clock tick as the true time corresponds to the particle arrival time. The template construction is based on this fact. 
+Thus, pulse templates were created from the raw waveform samples for each detector individually. These were the average 
+pulse shapes of raw samples pulses with a constant pedestal, negligible background and pileup protection. 
+The sample pulses were aligned with respect to the true time $t$. We defined a pseudo 
+time $t^'$ within a clock tick given by the expression,\\
+\begin{equation}\label{eq:pseudoT}
+t' = \frac{2}{\pi}tan^{-1}(\frac{S_m - S_{m-1}}{S_m - S_{m+1}})
+\end{equation} 
+where each tick was finely divided into a million bins. In the above expression m is the index of the maximum/peak 
+sample and $S_m$ is the value of the peak sample. The true time t of the pulse is a complicated function of pseudo 
+time $t^'$ and so it was determined from the pseudo time. 
+The pseudo time was considered to be an increasing function in a short interval 
+of time $\tau'$ within the bin. Moreover, the distribution p(t) of true time has to be uniform and independent of the clock speed. 
+Thus, by finding the running integral of pseudo time $t'$ and normalizing it gave a mapping between the true time t 
+and the pseudo times $t^'$. The true time as a function of pseudo time is given by the following equation,\\
+\begin{equation} \label{eq:trueT}
+t(\tau) = (5.88\ ns)\frac{\int_0^\tau p(\tau')d\tau'}{\int_0^{5.88\ ns} p(\tau')d\tau'}
+\end{equation} 
+where $\tau$ is a small interval of measurement of true time within a clock tick or modulus wrt clock ticks. 
+A distribution of pseudo times and true times for one channel is shown in the figure ~\ref{pseudo}:
+
+
+\paragraph{Template design procedure}\\
+\hspace{7 pt}
+
+The template is an average pulse shape for neutrons and gamma ray pulses created separately for each individual channel, 
+selected from the energy region of 2000 - 7000 total integral (in channels), where neutrons and gamma rays could be 
+unambiguously distinguished.
+The neutrons and the gamma ray pulses were tagged from previous pulse shape discrimination method based on areas of the tails of each pulse.
+All pulses in this energy region were aligned in such a way that the bin corresponding to the peak sample was at 14 clock ticks 
+(chosen for convenient alignment of all raw pulses). A correction of true time was added to the clock tick corresponding to the 
+peak sample's bin to align the pulses on a sub-bin basis and interpolate points between 
+bins of a clock tick. This term was subtracted from 14 and added to every 
+clock tick (sampling time bin recorded by the FADC clock). 
+The number of waveform pulses were chosen to be such that it was almost pileup free and the pedestals could be extracted from it.
+We picked up raw waveform pulses which had number of samples greater than 60 (or in other words island size was greater than 60).
+Finally template histograms were created by subtracting the pedestals and normalizing the sum of all pulses, normalized to unit area.
+An illustration of a neutron template and gamma ray template both superimposed for counter NU3 is shown in figure ~\ref{temp}.\\
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.75\textwidth}{!}{\includegraphics{neutronTemp1.png}}
+\end{tabular}
+\caption{Template of counter NU3 for neutrons (in red) and gamma rays (in blue) superimposed.}
+\label {temp}
+\end{center}
+\end{figure}
+
+
+
+%\subsubsection{Minimization}
+\paragraph{Minimization:}\\
+It is assumed that we have a single pulse on an island and the function that is minimized is given by,
+\begin{equation} \label{eq:min}
+D = \sum_{i \in \text{samples}}[S_i - P - Af_i(t)]^2
+\end{equation} 
+where $S_i$ is the measured sample of a pulse corresponding to bin (or clock tick) i 
+and $f_i(t) $ is the average pulse template created above,
+$t$ is the time, $A$ is the pedestal subtracted area and $P$ is the pedestal. Each pulse was fitted using equation 
+~\ref{eq:min} to identify it.
+\\
+{\bf Fit Parameters:} Initially, a three parameter MINUIT least-square fit was used to discriminate the pulses. 
+The time $t$, pedestal subtracted area $A$ and pedestal $P$ of the pulse were used as the independent
+ fit parameters which made the fit very time consuming. 
+Consequently a more efficient single parameter fit function using Brent's Minimization was used for fitting.
+\\
+The figure ~\ref{pulseFit} shows a neutron pulse (defined using PSD ratio method) fitted by a neutron template and a gamma ray template.
+It shows the fit parameters obtained using MINUIT.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{pulseN_root.png}} 
+\end{tabular}
+\caption{ A neutron pulse first fitted with a neutron template (left) and then a gamma template (right), using MINUIT fit.}
+\label{pulseFit}
+\end{center}
+\end{figure}
+
+
+
+The parameter used for fitting using Brent's method was $t$. As it is evident that the partial
+derivatives of pedestal $P$ and area $A$ are both linearly dependent of the minimization function $D$ they can be solved
+analytically by evaluating the partial derivative of equation ~\ref{eq:min} 
+with respect to $P$ and $A$ and setting them to zero at the minimum of $D$.
+Thus the partial derivatives are given by,
+\begin{equation} \label{eq:minP}
+\frac{\partial D}{\partial P} = -2 \sum_{i \in \text{samples}}[S_i - P -Af_i(t)] = 0
+\end{equation} 
+
+\begin{equation} \label{eq:minA}
+\frac{\partial D}{\partial A} = -2  \sum_{i \in \text{samples}} f_i(t)[S_i - P - Af_i(t)] = 0
+\end{equation} 
+Solving equation (~\ref{eq:minP}) we obtain,
+\begin{equation} \label{eq:ped}
+P = \frac{\sum_{i \in \text{samples}}[S_i -Af_i(t)]}{n}
+\end{equation}
+where n is the number of samples.\\
+Similarly solving equation (~\ref{eq:minA}) gives the following,
+\begin{equation} \label{eq:Samp}
+\sum_{i \in \text{samples}}S_if_i(t) - P\sum_{i \in \text{samples}}f_i(t) -A\sum_{i \in \text{samples}}f_i(t)^2 = 0
+\end{equation}
+Substituting the value of $P$ from equation (~\ref{eq:ped}) we get an expression for area of pulse as,
+\begin{equation} \label{eq:Area}
+A = \frac{n\sum_{i \in \text{samples}}S_if_i(t) - \sum_{i \in \text{samples}}f_i(t)^2 }{(n-1)\sum_{i \in \text{samples}}f_i(t)^2}
+\end{equation}
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{Brent.png}} 
+\end{tabular}
+\caption{ Finding a minimum in the interval (a,c) using Brent's minimization. a$_1$ and b$_1$ are the 
+initial points selected to find minimum and c$_1$ is a point in between them, which is replaced by a$_2$, b$_2$, and 
+c$_2$ after finding x$_1$ at c$_1$ in the first step. In the second step  x$_2$ is found at c$_2$ to get a smaller minimum. 
+The figure shows three steps and a final set of points a$_4$, b$_4$, and c$_2$ and the process continues till tolerance is 
+achieved.}
+\label{brent}
+\end{center}
+\end{figure}
+
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{pulseN_brent.png}} 
+\end{tabular}
+\caption{  A neutron pulse first fitted with a neutron template (left) and then a gamma template (right), using Brent's minimization.}
+\label{brentFit}
+\end{center}
+\end{figure}
+
+In the algorithm used, equation ~\ref{eq:Area} was solved for every pulse iteratively to get the area 
+first and then this area was plugged in equation (~\ref{eq:ped}) to find the pedestal.
+This ultimately reduces the minimization of $D$ to a single variable/parameter function of $t$, which was minimized using Brent's method.
+The initial guess for $t$, was taken to be the true time of the peak sample evaluated from the method described above. 
+The ROOT class  BrentMinimizer1D was used to implement Brent minimization. This class takes a minimizer function with a single parameter 
+and uses Brent's parabolic minimization. A time interval (a$_1$,c$_1$) is selected and 
+%cite: http://linneus20.ethz.ch:8080/1_5_2.html
+an intermediate point b$_1$ is chosen such that b$_1$ is less than both a$_1$ and c$_1$. 
+A point x$_1$ is selected between a$_1$ and c$_1$.  The greater of the two (a$_1$ or c$_1$) is assigned x$_1$, 
+since we intend to find the minimum. 
+The subscript 1 is changed to 2 for both a and c as this denotes the second step. 
+Now, the same procedure is repeated by choosing a point x$_2$ between a$_2$ and c$_2$.
+This process continues until the interval gets sufficiently small, which is determined by the 
+tolerance of the BrentMinimizer1D class. This process is shown in figure ~\ref{brent} for three steps.  
+The tolerance and step size were selected such that the 
+output was good enough to separate neutrons and gamma rays and the process was time efficient too.\\
+
+\paragraph{Fit Function/Template:} \\
+\hspace{7 pt}
+No analytical fit function was used. Instead a finely binned histogram which was the average template 
+$f_i(t) $ was used for fitting individual pulses, that were coarsely binned histograms. 
+ Initially, the errors were set to unity for all bins including bins with a zero value (if any). This was done 
+so that neutrons and gamma rays could be distinguished on the basis of the values of chi squares obtained by fitting each pulse
+with a neutron template and a gamma ray template. This was justified as it was assumed that there was no correlation between data from one 
+bin to the other and uncertainties were independent of sample values after removing noise.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{1.0\textwidth}{!}{\includegraphics{parameters.png}} 
+\end{tabular}
+\caption{ Comparison of fit parameters obtained from MINUIT and Brent's Minimization. 
+The leftmost panel shows the comparison of areas from MINUIT and Brent's method 
+respectively. The next shows the same for times and the rightmost compares the pedestals from both these methods. }
+\label {parameters}
+\end{center}
+\end{figure}
+% root file for parameters is 
+ Overflowing samples were ignored in fitting which helped in recovering the overloaded pulses.
+ Interpolation between bins were used to generate a more continuous function for improved fit results.
+ Fit range was used from 5 samples below the peak sample to 50 samples after the peak i.e. about 55 samples were used. 
+
+Using the Brent's minimization fit method instead of three parameter root fit using MINUIT had several advantages.
+It was much faster than the ROOT fit as the number of parameters reduced to one. 
+High energy, overloaded pulses were recovered. 
+Figure ~\ref{brentFit} shows the fit using Brent method on a neutron pulses fitted with neutron and gamma ray templates.
+
+Next comparisons of $t$, $A$ and $P$ were done from the output of  both fit methods as a sanity check.
+The plots shown in figure ~\ref{parameters} illustrates the comparison of $t$, $A$ and $P$ 
+from the 3 parameter  minimization using MINUIT and Brent's methods respectively.
+The Brent areas and root fitted areas were comparable indicating that the template fit method could be used effectively for a good PSD.
+Looking at individual pulses that had different fit results from MINUIT and Brent minimization, it was found that they were either 
+noisy after pulses, overloaded pulses, pulses with small number of samples or pile up pulses (double pulses on an island). 
+All this was encountered in later studies too and will be discussed in detail later.
+
+\subsubsection{Energy Dependence of templates}
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.42\textwidth}{!}{\includegraphics{neutronEnergyTemp1.png}} 
+\resizebox*{0.42\textwidth}{!}{\includegraphics{gammaEnergyTemp1.png}} 
+\end{tabular}
+\caption{Three energy dependent neutron templates (left) and gamma ray templates (right). 
+These are normalized relative to their peak valus. The neutron templates show a very small energy 
+dependence and the gamma ray template is independent of energy.  }
+\label {energyTemp}
+\end{center}
+\end{figure}
+The tails of neutron pulses depend on energy especially in the low energy region. 
+Low energy pulses have a larger fall time for neutrons and 
+so a larger tail is expected. Thus it was essential to test if the template shape had an energy dependence or not 
+(especially for neutron templates). 
+To test and understand this, templates of three different energy ranges were created. The regions chosen were as follows:
+\begin {itemize}
+\item 2000 - 3500 channels corresponding to low energy
+\item 3500 - 5500 channels corresponding to intermediate energy
+\item 5000 - 7000 channels corresponding to high energy
+\end {itemize}
+Figure ~\ref{energyTemp} shows the template of the three energy ranges stated above for neutrons(left panel) and gammas(right panel). 
+The three ranges are normalized relative to their peak values and overlayed so that they can be compared.
+It is evident that the neutron templates are very slightly energy dependent.
+The gamma ray templates do not depend on energy. Thus, we decided to have a single template for all energy ranges.
+
+
+\subsubsection{Chi Square distribution using Brent's algorithm}
+Using Brent's method, each pulse was first fitted with a neutron template and then a gamma ray template and the chi squares were found. 
+The pulse was considered to be a gamma ray or a neutron depending on which template gave a lower chi square value. 
+This method could help in finding a better pulse shape discrimination specially at low energies and 
+facilitate  a comparative study of pulse shape discrimination between  the method using PSD ratios 
+and this method of chi square minimization.
+Besides it could also help in solving the problem of cut off pulses by rejecting overflowing points 
+ and help get rid of noise by rejecting points below a certain range (done by fitting only above pedestals).
+A plot of chi square difference of pulses fitted by a neutron template and gamma ray template versus energy is shown in figure ~\ref{chiSq}.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.46\textwidth}{!}{\includegraphics{chi2_psd.png}} 
+\end{tabular}
+\caption{Plot of chi squared difference between neutron and gamma ray templates with pulse energy(total area)}
+\label {chiSq}
+\end{center}
+\end{figure}
+The positive chi square difference were gamma rays and the negative part of this plot were neutrons.
+Additional cuts to get rid of the following were applied
+\begin {itemize}
+\item Noise that had no real pulse
+\item Pulses sitting on islands that were less than the fit range
+\item Pileup pulses - i.e two pulse on an island which were reasonably far apart and so could be handled
+\item two pulse on an island which were extremely close and so could not be handled
+\end {itemize}
+
+%Edit                                                                                                                                                
+The range of badly fit pulses like a pulse with small islands size was changed as shown in the left panel of figure ~\ref{pulse}.
+Ultimately these pulses were ignored due to the fact that they did not even have a tail to determine
+if they were neutrons or gammy rays. A correction for double pulses (not pile up protected) was applied by changing the fit range
+and ignoring the second pulse on the island as shown in the right panel of figure ~\ref{pulse}.
+Most of the noisy pulses had a peak time on an island that was either greater than the length of the entire island or greater than the
+fit range, which is impossible. Such pulses were easily identified and ignored which enabled us to get rid of noise.
+Extremely close double pulses on an island could not be taken care of as there was no unique feather to identify them.
+An example of such a pulse is shown in figure ~\ref{doublePulse}
+
+
+
+\subsubsection{Correlation between bins}
+Initially weights of all bins were set to unity including empty bins,
+whereas it could be possible that pedestals can have different weights compared to the peaks or tails. 
+It was thought that tails of neutron pulses being energy dependent (especially at low energies) might have different weights too. 
+But this possibility was rejected based on the negligible effect found on energy for neutron pulses.
+Also it was assumed that there was no correlation between bins. 
+
+ As the energy of a scintillating photon could be distributed in more than one bin, 
+it was possible that data read by the clock may be distributed 
+which in turn might lead to correlation between bins.\\
+The first step in our effort to find correlation between bins, was to find the difference between the 
+ADC counts read by the pulses and value of fit function at a point. This difference was called the residue. 
+Then the distribution of residues of consecutive bins were plotted as shown in figure ~\ref{correlated1}. 
+Figure ~\ref{correlated1} takes a large scale into account to get an idea of the big picture of the distribution of residues.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.36\textwidth}{!}{\includegraphics{shortPulse.png}} 
+\resizebox*{0.36\textwidth}{!}{\includegraphics{pileupPulse.png}} 
+\end{tabular}
+\caption{ Pulses with island size less than the fit range (left) and double pulses on an island (right)}
+\label {pulse}
+\end{center}
+\end{figure}
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.42\textwidth}{!}{\includegraphics{doublePulse.png}} 
+\end{tabular}
+\caption{Extremely close double pulses on an island }
+\label {doublePulse}
+\end{center}
+\end{figure}
+
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.87\textwidth}{!}{\includegraphics{correlated1.png}} 
+\end{tabular}
+\caption{Residues of fitted function and pulses for nth and (n+1)th bin for neutrons(left) and Gamma rays(right)}
+\label {correlated1}
+\end{center}
+\end{figure}
+
+After looking at the correlation plots and residue plots (and several individual pulses too) we concluded that the fit range of 5 to 55 
+gave better results and there was no correlation between data - none for gamma rays and negligible for neutrons. 
+The reason for this could be due to fact that a pulse is made up of several scintillating photons and not a single photon and so correlations probably 
+get distributed and cancel out. Besides the electronic noise too could contribute to produce uncorrelated data.
+In conclusion, it was found empirically that data is not correlated and so it was justified to have equal weight errors all set to unity 
+for all bins for all energy ranges.\\
+
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.82\textwidth}{!}{\includegraphics{correlatedN55.png}} 
+\end{tabular}
+\caption{ Residues of each bin in fit range 5 to 55 - neutrons - all detectors }
+\label {correlatedN55}
+\end{center}
+\end{figure}
+
+
+
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.82\textwidth}{!}{\includegraphics{correlatedG55.png}} 
+\end{tabular}
+\caption{ Residues of each bin in fit range 5 to 55 - Gamma rays - all detectors}
+\label {correlatedG55}
+\end{center}
+\end{figure}
+
+
+\subsubsection {PSD using Pulse Templates}
+Each detector had a neutron pulse template and a gamma ray pulse template and individual pulses were fitted with both these templates. 
+The chi square for each pulse from both these templates were found. The chi square obtained 
+from the neutron pulse template fitted to the pulse was called 
+neutron chi square and the chi square obtained from the gamma ray pulse template fitted to the pulse was called gamma chi square.
+Both these chi squares were compared and the analytically found area of the pulse using the method above corresponding 
+to the smaller value of chi square was saved as a parameter called Brent area (which was like the total integral or area of the pulse).
+
+The chi squares obtained for every pulse after fitting with a neutron template 
+and Brent area were plotted in the histogram shown in figure ~\ref{chiN}. 
+A lower chi square value indicated a better fit with a neutron template and so in this plot the pulses with low chi square were 
+selected to be neutrons and ones with higher values of chi square were gamma rays.
+Cuts based on the ratio of neutron chi square values to Brent area for various energy ranges 
+were thus applied to separate neutrons from gamma rays.
+Table ~\ref{tab:rangeChiN} shows the cuts for this ratio in the specified energy range that determines neutrons.
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\hline
+{\bf Counter}  &{\bf Energy Range}    & {\bf Chi square : Brent Area - Range} \\
+\hline
+ NU3     & 1116 - 3929  & 109.43 - 422.15\\
+         & 3929 - 25000	& 422.15 - 1639.45\\
+\hline
+ ND3     & 1099 - 4766	& 99.41 - 448.63\\
+         & 4766 - 25000	& 448.63 - 1187.8\\
+\hline
+NU6      & 1100 - 3341	& 114.19 - 397.32\\
+         & 3341 - 25000	& 397.32 - 1706.36\\
+\hline   
+ND6      & 1200 - 3743	& 149.51 - 421.09\\
+         & 3743 - 15000	& 421.09 - 1421.99\\
+\hline   
+NU11     & 1498 - 3754	& 106.92 - 306.57\\
+         & 3754 - 25000	& 306.57 - 1104.17\\
+\hline     
+ND11     & 1400 - 4325	& 204.63 - 419.91\\
+         & 4325 - 25000	& 419.91 - 1756.54\\
+\hline       
+NU14     & 1200 - 1648	& 163.46 - 221.39\\
+         & 2800 - 17000	& 221.39 - 1572.54\\
+\hline    	
+ND14     & 1200 - 1832	& 137.56 - 211.09\\
+         & 1832 - 19000	& 211.09 - 1672.9\\
+\hline   
+\end{tabular}
+\caption{The table shows the range of the ratio of neutron chi square to Brent area cuts for all energy ranges of all neutron detectors using template fit method of PSD, `D' stand for downstream, `U' for upstream, and the number stands for the position in $\phi$.}
+\label{tab:rangeChiN}
+\end{table}
+
+
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.55\textwidth}{!}{\includegraphics{psd_chiN.png}} 
+\end{tabular}
+\caption{Neutrons were defined using this plot}
+\label {chiN}
+\end{center}
+\end{figure}
+
+
+\subsubsection {Comparison of PSD using templates and tail total method}
+Different neutron definitions were created and saved using the two methods i.e. pulse template method and slow total method.
+A quantitative study showing the FOM is shown in the figure ~\ref{fom} for detector NU3. The FOM was the same definition as discussed before and 
+is also given by equation ~\ref{eq:fom}. If the separation between Gaussian peaks representing the neutron and gamma ray 
+peaks is greater than the sum of 
+widths (precisely FWHM) of the two peaks then the neutrons can be unambiguously distinguished from the gamma rays. 
+Thus, only a FOM greater than unity represents a sensible value for neutron gamma discrimination. 
+It appeared from figure ~\ref{fom} that the threshold energy can be reduced a little more for the new pulse template fit method of PSD. 
+For detector NU3 the threshold seemed to now be around 120 keVee instead of 200 keVee with the old slow total method of PSD.
+At higher energies too the FOM for this method looked better.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.55\textwidth}{!}{\includegraphics{fom.png}}
+\end{tabular}
+\caption{ Comparing figure of merits from the two methods - slow total and chi2 for detector NU3}
+\label {fom}
+\end{center}
+\end{figure}
+Several cuts were applied on both methods to get rid of the unwanted pulses like noise, double pulses, pulses with small island size etc. 
+Finally we could not get rid of a few unwanted pulses like closely placed double pulses and overloaded pulses which were misidentified as 
+neutrons using the slow total method but were eliminated from the template fit methods. 
+Examples of these pulses are shown in figure ~\ref{badpulse}. The left panel of this figure shows an example of an extremely close 
+double pulse which could not be eliminated and
+ could be misidentified as a neutron pulse. The right panel shows an overloaded pulse that was misinterpreted to be a neutron, 
+by the old slow total method.
+
+For consistency same cuts which maximized the elimination of all undesirable pulses (after pulses or noisy pulses, double pulses etc) 
+were applied to both the methods of PSD.
+The tagged neutrons pulses extracted from both these methods and the PSD ratio versus area/energy were plotted for the same energy range to compare 
+the number of neutrons obtained from both methods. The energy range was selected to be from 2000 to 25000 channels.
+The slow total method showed some falsely identified neutrons due to its inability to distinguish overloaded pulses.
+About 65 percent of the falsely identified neutrons by the slow total method were these overloaded pulses and a handful of 10 percent 
+were double pulses. 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.4\textwidth}{!}{\includegraphics{pulseBad1.png}} 
+\resizebox*{0.45\textwidth}{!}{\includegraphics{pulseOver.png}} 
+\end{tabular}
+\caption{ Typical pulses that were misinterpreted as neutrons by the slow total method of PSD}
+\label {badpulse}
+\end{center}
+\end{figure}
+Due to this misidentification the slow total method had around 10 percent more neutron data than the 
+template fit method, in the entire energy region.
+But in the energy range from 2000 to 25000 channels there was around 7.89 percent difference in neutron data as shown in the figure ~\ref{psdComp}
+ for detector NU3.
+
+ The energy range of each detector is shown in table ~\ref{tab:range_cs}.
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\hline
+Counter        & Min Range(keV_{ee})	& Max Range(keV_{ee})\\
+\hline
+ NU3            & 182.28			& 4084.97 \\
+ ND3            & 177.05			& 4025.77 \\
+ NU6           	& 177.13			& 4025.77 \\
+ ND6      	& 194.17			& 2427.18 \\
+ NU11           & 182.28			& 3782.15 \\
+ ND11           & 177.05			& 3346.72 \\
+ NU14          	& 177.13			& 3935.19 \\
+ ND14      	& 194.17			& 4491.73 \\
+
+\hline
+\end{tabular}
+\caption{The table shows the energy range of all neutron detectors using template fit method of PSD, `D' stand for downstream, `U' for upstream, and the number stands for the position in $\phi$.}
+\label{tab:range_cs}
+\end{table}
+
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{psd_ch1.png}}
+\end{tabular}
+\caption{ Comparing number of neutrons - slow total and chi2 for detector NU3}
+\label {psdComp}
+\end{center}
+\end{figure}
+To summarize the template method was better than the old slow total method for PSD for the following reasons:
+
+\begin {itemize}
+\item It was able to handle noise, double pulses on island etc. better than  the slow total method
+\item Fit method could take care of overflows by ignoring overloaded points
+\item A higher figure of merit was achieved
+\item PSD could be pushed to a little lower energy compared to the slow total method - thus the dynamic range was increased.
+\end {itemize}
+
+The major disadvantage of this new method was that it took much longer time compared the slow total method. 
+After optimizing the most suitable parameters like step size and tolerance functions of the 
+BrentMinimizer1D class of root we could achieve an optimized time of 24 minutes for a run
+as against 6 mins for the same run with the slow total method. Thus the analysis got four times slower 
+with this method. This was justified because each pulse had to be fitted twice, 
+once with a neutron template and then with a gamma ray template. Thus, ultimately we used the PSD ratio method 
+with slow integral 30 as tail area for the final neutron gamma discrimination for our future analysis.
+
+
+\subsection{Energy Calibration of Neutron Detectors}
+% Contents of calibration.tex
+
+%cite  http://books.google.com/books?id=DliKdTg8GHQC&pg=PA317&lpg=PA317&dq=klein-nishina+EK&source=bl&ots=SdsrLMLxRA&sig=kSddQ_PjTQnJXOWAtUBFUG84Paw&hl=en&sa=X&ei=UjEbT6T0MIG0iQL1ufGwCA&ved=0CDQQ6AEwAg#v=onepage&q=klein-nishina%20EK&f=false
+
+%cite http://www.springer.com/physics/biophysics+%26+biological+physics/book/978-3-642-00874-0
+%cite Book's name Radiation Physics for Medical Physicists - Podgorsak, Ervin B.
+%\chapter{Neutron/Gamma - Discrimination}
+
+%\chapter{Energy calibration of Neutron counters}
+Neutron detectors can detect gamma rays and neutrons equally well. 
+This property was utilized to calibrate the energy of the pulses read by these counters. 
+Radioactive sources emitting gamma rays was used for this purpose. Gamma rays undergo Compton 
+effect whereas neutrons do not. This feature was exploited to compare the specific 
+known energy of the gamma ray, due to Compton scattering 
+with the number of channels read by the neutron counter corresponding to that energy.
+The pedestal subtracted area of each pulse is proportional to the energy of any pulse and this area is arbitrary 
+and does not have any units associated with it (they were called channels for convenience). 
+The energy corresponding to these channels were calibrated using Compton scattering of gamma 
+rays from the gamma rich radioactive source. 
+The calibration procedure involved a suitable fitting of the data in the tail region of the energy spectrum 
+(which corresponds to the Compton edge or maximum kinetic energy), 
+using a theoretical function that explains scattering corrections due Compton scattering. This is called the Klein Nishina 
+formula. Owing to the energy resolution of the counters there is a Gaussian distribution about the maximum energy read. 
+Thus the Klein Nishina formula had to be modified by convoluting it with the Gaussian distribution and then the tail 
+region of the spectrum was finally fitted to obtain the corresponding energy of the Compton edge.
+The entire procedure will be explained in detail in the following subsections.
+\subsubsection{Compton Effect}
+Compton effect is the elastic scattering of a gamma ray photon with an electron in an atom which results 
+in increasing the wavelength of the photon (or decreasing its energy).
+Due to the changing wavelength this can be thought as an inelastic scattering, but the origin of this scattering 
+is actually an elastic scattering with the electron.
+The expression for the scattering wavelength $\lambda_f$ is given by the expression,
+\begin{equation}\label{eq:compton}
+\lambda_f - \lambda_i = \frac{h}{m_e c} (1-Cos\theta )
+\end{equation}
+where $\lambda_i$ is the wavelength of the initial gamma ray photon, $m_e$ is the mass of the electron and 
+$\theta$ is the angle by which the electron scatters.
+The corresponding initial and final energies of the photon are $E_i$ and $E_f$, respectively. 
+Since the collision with the electron elastic, then at the maximum scattering angle $\theta$ = 180\degree, 
+this energy difference is totally carried away by the electron which is the maximum kinetic energy $E_T$ of the 
+scattered electron. \\
+$E_T = E_f - E_i$
+\\Thus from equation ~\ref{eq:compton} we derive $E_T$ as,
+\begin{equation}
+\frac{hc}{E_f} - \frac{hc}{E_i} = \frac{2 h}{m_e c}
+\end{equation}
+
+\begin{equation}
+\frac{E_i-E_f}{E_i (E_i-E_T)} = \frac{2}{m_e c^2} 
+\end{equation}
+
+\begin{equation}
+E_T m_e c^2 = 2 E_i(E_i -E_T)
+\end{equation}
+
+\begin{equation}\label{eq:ke}
+E_T = \frac {2 E_i^2}{m_e c^2 + 2 E_i}
+\end{equation}
+which is the maximum kinetic energy of the electron as a function of the initial energy of the gamma ray.\\
+The radioactive sources used during the experiment for calibration runs were $^{60}$Co and $^{137}$Cs. 
+$^{60}$Co is an unstable isotope of cobalt with a half life of about 5.27 years which undergoes a beta decay 
+to form $^{60}$Ni. This isotope of nickel emits two spectral lines in the form of gamma rays with energies 
+1.17 and 1.33 MeV respectively. Thus we conclude that $^{60}$Co is a source of two gamma rays with energies
+1.17 and 1.33 MeV. Since these spectral lines are in close proximity we took the average of these to be 
+an equivalent spectral line emitted by this source of energy 1.25 MeV.
+On the other hand $^{137}$Cs has a distinct photo peak of 667 keV emitted by $^{137}$Ba, which is formed 
+by the beta decay of $^{137}$Cs.
+Thus the energy spectrum due to these two sources should extend up to the maximum kinetic energy of the electron 
+arising from an initial energy of the gamma sources that correspond to these photo peaks. 
+This kinetic energy was also called the Compton energy or Compton edge and was calculated using the simple 
+equation ~\ref{eq:ke}. The table below jots down the Compton edge for the corresponding photo peaks of the 
+two source for quick and easy reference.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\hline
+Source        &Photo Peak (keV)    &Compton Edge (keV)\\
+\hline
+$^{60}$Co            & 1250             & 1030\\
+$^{137}$Cs           & 667              & 480\\
+\hline
+\end{tabular}
+\caption{The table shows the Compton edges for $^{60}$Co and $^{137}$Cs sources}
+\label{tab:ce}
+\end{table}
+
+
+Due to a limitation on the energy resolution of the counters a sharp edge at these energies cannot be expected. 
+Instead there a spread about these energy with the spectrum being a Gaussian distribution about this peak energy. 
+This gives rise to a tail region about the maximum energy as shown by the red plot in figure ~\ref {convolution}. 
+Note the red color plot is the actual data for the energy spectrum with the gamma source. The others are 
+plots of theoretical functions that are used for fitting the data and calibrating the counters. These will be explained in 
+the subsequent sections.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{convolution.png}}
+\end{tabular}
+\caption{Energy distribution of counter ND11 with source $^{137}$Cs in red. The blue line represents Klein Nishina distribution. 
+The green line is the fit function i.e. convolution of Klein Nishina cross section with the Gaussian. 
+The black line is the fitted region}
+\label {convolution}
+\end{center}
+\end{figure}
+
+
+A precise value of the channel corresponding to the Compton edge could be read only after fitting the spectrum 
+with an appropriate theoretical formula. The expression for scattering cross-section for Compton scattering 
+(called Klein Nishina scattering formula)
+had to be convoluted with the Gaussian distribution to fully account for the tail region of energy spectrum. 
+The details of this are in the following section.
+\subsubsection{Klein Nishina Formula}
+Klein Nishina formula gives the expression for differential scattering cross section of photons scattered by single 
+electron corresponding to lowest order of quantum electrodynamics. This properly explains Compton effect for high 
+energy photons which are X rays or gamma rays. Thus, we investigate this formula in detail and apply it for our calibration studies. 
+Differential cross section is defined as the cross section ($\sigma$) per unit solid angle ($\omega$) which can interpret the 
+likelihood of Compton effect to occur per unit solid angle. For our analysis it was more suitable to use the energy 
+distribution of the differential cross section i.e. $\frac{d\sigma}{dE_T}$, where $E_T$ is the maximum kinetic energy of the 
+electron or the Compton edge explained above.
+\begin{equation}\label{eq:klein}
+\frac{d\sigma}{dE_T} =  \frac{\pi {r_e}^2}{\epsilon h \nu}(\left2 -\frac{2 E_T}{\epsilon (h\nu-E_T)} + 
+\frac{{E_T}^2}{\epsilon^2 (h\nu-E_T)^2} + \frac{ {E_T}^2}{h\nu (h\nu-E_T)} \right)
+\end{equation}
+%ref the book in first cite
+\\
+where $r_e$ is the classical electron radius and $\epsilon$ is given by\\
+$\epsilon = \frac {h\nu}{m_e c^2}$\\
+$m_e$ being the rest mass of the electron.\\
+The distribution of scattering cross section as a function of energy i.e. equation~\ref{eq:klein} is plotted in the figure 
+~\ref{fit_func} by the solid black line. This is shown for Compton scattering of electrons 
+(having a Compton edge of ~ 480 keV) with gamma ray photons emitted from $^{137}$Cs (spectral line of 667 keV) as an example.\\
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.87\textwidth}{!}{\includegraphics{fit.png}}
+\end{tabular}
+\caption{A plot of Klein Nishina formula in black solid line along with the fit function which is shown by the blue dotted line.
+The fit function is a convolution of Klein Nishina formula with a Gaussian distribution of sigma ~ 20 units.
+This is an example of Compton scattering from $^{137}$Cs source with a photo peak of 667 keV and a Compton edge of 480 keV.}
+\label {fit_func}
+\end{center}
+\end{figure}
+
+
+Selecting the Klein Nishina crossection as the theoretical model was reasonable enough as it could account for 
+scattering of high energy photons like gamma rays and X rays. Besides it also considered the details of 
+relativistic quantum mechanical effect in the high energy regime and so we expected it to give accurate results.
+
+
+\subsubsection{Fit function}
+The fit function was ultimately chosen to be the convolution of the Gaussian (owing to detector resolution) 
+and the Klein Nishina cross section as discussed above. This convolution was done numerically using ROOT.
+The description of the algorithm used will be delineated briefly. 
+The Klein Nishina cross section formula was first plotted by function defined by equation ~\ref{eq:klein}.
+A Gaussian function with a suitable width was superimposed on the  Klein Nishina formula given by equation 
+~\ref{eq:klein} and plotted by the black solid line in figure ~\ref{fit_func} and the contents of both these function 
+were added for that particular bin. The Gaussian was moved or shifted by a bin the same addition was repeated.
+Finally we found the integration of these added bins over the entire range of interest. The range of interest was just the tail 
+region of the spectrum.
+The resulting integrated function obtained was thus, the result of 
+the convolution of the two. This convolution function was our model for fitting the energy spectrum. 
+An example of the plot of the convolution function is shown in figure ~\ref{fit_func}.
+The input parameters of the fit function were manipulated so as to denote a physical meaning. 
+The significance of these parameters were the following:
+\begin {itemize}
+\item The first parameter returned the channel corresponding to maximum kinetic energy or Compton edge
+\item The second parameter returned sigma of the Gaussian distribution used for convolution
+\item The third parameter returned - the number of counts in the channel or bin corresponding to the Compton edge
+\item The last parameter signified a flat time independent background that was subtracted to get a pedestal free background.
+\end {itemize}
+Figure ~\ref{convolution} shows an example of the fit parameters and the fit range. Since we had to find the 
+Compton edge, so only the tail part of the spectrum was the region of interest and so that was selected to be our fit range.
+In this figure the fit range is from 3800 to 6000 channels.
+Thus, the channel returning the maximum kinetic energy or Compton edge could easily be read off from the first parameter of the fit 
+function which was of vital importance for finding the gain of the counter. The example in figure ~\ref{fit_func} shows that the 
+Compton edge for detector ND11 was 4700 channels at this voltage for $^{137}$Cs gamma source. Since the actual Compton edge for this 
+source is 480 keV$_{ee}$ one can easily see the gain for this detector was 9.7  channels/keV$_{ee}$.
+This calibration data was taken in the beginning of the run and the gains were pretty high at that time. 
+The first column of table ~\ref{tab:calc} shows gains of all detectors. Note that the gains changed over time for various reasons that 
+will be explained in the section ~\ref{sheilding} later.
+
+\subsubsection{Effect of Background}
+There was a flat time independent room background which is interpreted by the fourth parameter in the fit function.
+But besides this there also existed an exponentially decaying time dependent background and other noisy signals.
+Some detectors had a small background and others had a larger background. The figure ~\ref{calib} shows the energy spectrum
+of all counters so as to get an idea of the nature and magnitude of background of each counter. This is shown only for ${^137}$Cs
+source for calibration data taken at the end of run. From this it is clear that the background also depended on the
+type of neutron counter used. For example NU6, ND6, NU14 and ND14 which were all Bicron detectors showed a much lower background
+compared to the other detectors.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.82\textwidth}{!}{\includegraphics{allDet_calib.png}}
+\end{tabular}
+\caption{Energy spectrum of all detectors compared with $^{137}$Cs}
+\label {calib}
+\end{center}
+\end{figure}
+
+
+The background, could be attributed due to some or all of the following reasons:
+\begin {itemize}
+\item A different source in the vicinity interfering with the detector - during the run we took data with both sources simultaneously.
+We placed a source of  $^{137}$Cs between NU3 and ND3 and a source of $^{60}$Co between NU11 and ND11 simultaneously.
+Thus, $^{137}$Cs could be interfering with NU11 and ND11 and vice versa (though it was assumed during the run that
+the likelihood of such an interference is very scarce as the detector pairs of  N3's and N11's are quite far apart).
+\item  Type of detector used (N3 and N11's show a larger background and a flatter peak
+which gives better results compared to N6 which have a very prominent peak and a little hard to fit with the model chosen).
+\item This may not a perfect model owing to multiple scattering. Thus, the distribution may not
+strictly follow the Klein-Nishina scattering cross section for a single electron undergoing Compton scattering as the formula predicts.
+Klein Nishina formula cannot account for the cascading effect that would change the Cross section due to multiple scattering, especially
+in the high energy region which could cause an additional spread in the tail region of the spectrum
+\item In the low energy region there is additional ambient background gamma rays (due to thermal neutrons) that does not depend on the \
+source
+and could explain the exponentially decaying distribution in this low energy.
+\end {itemize}
+For this reason some detectors did not fit well with the model. In these cases the background was
+overwhelming that could effect the fit region of the spectrum (though not very significantly).
+For example NU6 and ND6 end of run calibration data showed a very large background and yet a good fit as
+there was a lesser chance of multiple scattering due to this and so the model fitted better for detectors with large background.
+The background seemed to be an exponentially decaying fit, so an exponentially decaying term was added
+to take care of this. But this just made the fit even worse.
+Nevertheless, since we are interested only in the tail region and these backgrounds do not distort our
+region of interest much, so the convolution function is a reasonable model for our detector calibrations.
+So, finally the calibration was done without adding the exponentially decaying background term.
+
+\subsubsection{Recalibration due to shielding of detectors} \label{sheilding}
+%edit every line after this
+The installation of $\mu$SR magnet hindered the gain of all detectors due to the stray magnetic fields 
+from this magnet that interfered with the neutron counter. All this was described in great detail in the 
+previous section. The problem was solved by shielding the counters with $\mu$ metal, the detailed 
+procedure of which was also discussed in that section. The high voltages of each detector had to be changed 
+and so that also caused in a change in the gains of each detector due this whole process. It was impossible to 
+restore the gains back to the initial values. There were other stray magnetic fields also that were effecting the counters, 
+besides the $\mu$SR magnet. For example a magnet called `COBRA' was often turned on and off that was used in a different 
+experiment in the vicinity of the site of Musun experiment which also had a very small effect on the gains. But this 
+effect was small enough to be ignored.
+The calibration was done separately for three sets of data and gains were found to slightly different for these different 
+data sets. These were categorized according to the list shown below:
+\begin {itemize}
+\item Initial calibration
+\item Calibration after shielding
+\item End of run calibration 
+\end {itemize}
+The ability of the counters to distinguish neutrons from gamma rays had totally gone. The high voltages had to 
+be changed to get back the almost same results and so calibration data was taken after $\mu$SR shielding and changing 
+the HV and for a final check of consistency a set of gamma ray source calibration data was also taken at the end of run 4.
+The table below shows the calibration of all neutron detectors for the above mentioned 
+using the fitting procedure and theory described above. 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\hline
+Counters &Initial Gain(ch/keV_{ee})  &Gain after shielding (ch/keV_{ee})  &Final Gain(ch/keV_{ee})\\
+\hline
+NU3            & 7.2                           & 6.12                 & 7.32\\
+ND3            & 5.9                           & 6.21                 & 6.41\\
+NU6            & 6.6                           & 6.21                 & 6.7\\
+ND6      & 7.31                  & 6.18                         & 6.38\\
+NU11           & 9.1                                  & 3.5                            & 7.75\\
+ND11          & 9.7                     & 7.47                         & 8.58\\
+NU14       & 4.69                           & 4.32                         & 4.22\\
+ND14           & 7.59                                  & 4.23                           & 5.25\\
+
+\hline
+\end{tabular}
+\caption{The table shows the gains before installing $\mu$SR magnet and just after installing it. 
+The last column shows the finally calibrated gains after successfully shielding the counters }
+\label{tab:calc}
+\end{table}
+
+Thus the gains were tried to recover as much as possible and for the above values we found the performance of the counters 
+to improve remarkable and they almost had the same ability as before for distinguishing gamma rays from neutrons, after 
+appropriate tweaking the HV's. 
+
+
+
+
+\section{Lifetime Analysis - Fusion Neutrons}
+%\section{Fusion Neutron Analysis}
+The importance of fusion neutron time spectrum was previously delineated in the section of muon chemistry, where we understood that 
+a study of the time spectrum of fusion neutrons would indirectly give us the population of the quartet state relative to the doublet state. 
+To achevie this neutrons had to be first separated from gamma rays by applying cuts and procedures discussed in the PSD section above. 
+The next step was to apply a fusion definition based on energy cuts, delay electrons etc. was formulated to distinguish them from the 
+capture neutrons. The capture neutron yield is just 0.03\% and so most of the neutrons were fusion neutrons. It was found that a single 
+run (of duration $\approx$ 5 minutes for run4 i.e. R2011) had around 300 fusion neutrons that could be detected by the neutron counters 
+(include the detector efficiency, acceptance etc.) Details of these numbers will be illustrated in later subsections. 
+Thus a single run had negligible statistic to arrive at any concrete conclusion. Around 1000 runs were added to study the time and energy 
+spectra of the fusion neutrons. This was number good enough to arrive at a sensible conclusion and produce reasonable results.
+
+The data set was selected carefully. Initially, in run R2011, the $\mu$SR magnet was not installed and 
+so the runs had a different energy calibration. 
+After installing the $\mu$SR magnet the neutron counters had sheets of mu metal shielding wrapped around them to protect their PMT's from
+ambient magnetic fields of 2-5 Gauss, that arose due to the installation of the muSR magnet.
+This reduced the gain of the neutron counters by a factor of 4.
+The HV was changed accordingly to restore the initial gains of the counters and the counters were thus re calibrated.
+counters by a factor of 4. These sheets of mu-metal were about 0.16 mm thick, using the configuration illustrated in Fig.~\ref{Shielded_N_det}
+
+\begin{figure}[!b]
+\centering
+\graphicspath{{./Figures/}}
+\includegraphics[width=0.3\linewidth]{Shielded_N_det.png}
+\caption{A single mu metal sheet around the PMT and scintillator cell, extending up to the ``Gondola'' $e^-$ scintillator detector, provided optimal\
+ shielding against the stray field of the $\mu$SR magnet.}
+\label{Shielded_N_det}
+\end{figure}
+
+All this is discussed in detail in the previous chapter.
+Thus, care was taken to make sure that the data set analyzed was after the installation of $\mu$SR magnet and the detectors were all 
+shielded with mu metal with HV reset for appropiate performance.
+\\ \\
+
+\subsection {Fusion Neutron Definition}
+\\Several cuts were applied to ensure that good fusion neutrons were selected. These cuts defined a fusion neutron. 
+The first cut applied was for the selection of neutrons from gamma rays, based on the PSD method, discussed in the previous section
+The other cuts ensured that data was pile up protected, 
+extracting clean neutrons associated with muons that stopped in the TPC within the fiducial volume. 
+Muons that stop in the TPC can produce both fusion and capture neutrons.
+A muon catalyzes the fusion process in deuterium and thus can later undergo a decay, resulting in a delayed Michel electron as opposed to a capture 
+process. We took advantage of this property to distinguish a fusion neutron from a capture neutron. Thus fusion neutrons were followed 
+by a delayed electron that caused a time lag of an electron with respect to a neutron. 
+A delayed electron cut i.e a time lag of  0 to 5000 ns of an electron with respect to a neutron was additionally applied to 
+extract fusion neutrons. 
+%ATTEN: CHANGE IMAGE FOR DELAY FROM 0 TO 5000 - LATEST FILE $MTA/mta_ds_211_2.root
+The time range selected was optimized based on the eSC time spectrum with respect to neutron time 
+spectrum as shown in the figure ~\ref{eSC_ndet} below:
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{eSC_ndet.png}} 
+\end{tabular}
+\caption{Time spectrum of electrons with respect to neutrons }
+\label{esc_ndet}
+\end{center}
+\end{figure}
+The spike at zero is a coincidence between electrons and neutrons and could mean an electron that goes past the scintillator and hits the 
+neutron counters simultaneously that is misidentified as a neutron probably(especially in the high/low energy range where neutrons are not 
+well identified well).
+This time range (0 to 5000 ns) used for delayed electron cut was changed to different values which have been studied and analyzed in the 
+systematic error studies section.
+
+\\Finally the fusion neutrons are mono energetic with a neutron energy of 2.45 MeV. 
+This cut was also applied along with the above mentioned cuts.
+This energy cut depends on the gain of each detector and was thus applied for each detector separately according to the gain obtained from 
+calibrating them. The resulting time spectrum for fusion neutrons after applying the above mentioned cuts is shown in Figure ~\ref{fusionTime}
+
+\subsection{Energy spectrum of fusion neutrons}
+The energy spectrum of all neutrons associated with a delayed electron appears to be different for different neutron counters. 
+This is because the energy resolution and HV set for each detector is different and the type of counter used is also different. 
+For example there were two old BICRON detectors, four new BICRON's and two home made counters. This resulted in different energy 
+gains of each detector as listed in table ~\ref{tab:calc}, which explains the different apparent energy spectrum for each channel. 
+Thus, to sudy the energy spectrum properly, only one detector output i.e. NU3, is shown in figure ~\ref{energy_nu3}. There is no 
+energy cut applied in the spectrum, in spite of which it shows almost no neutrons after 2.45 MeV. This cross checks the reliability of 
+the delayed electron cut applied above i.e. all fusion neutrons are associated with a delayed electron that emerges from 
+the decay of the recycled muon. 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{energy_nu3.png}}
+\end{tabular}
+\caption{Energy spectrum of fusion neutron as per the fusion neutron deifinition, but without any energy cut 
+(called it delay spectrum for convenience) for counter NU3}
+\label{energy_nu3}
+\end{center}
+\end{figure}
+It must be observed that there are a few neutrons beyond 2.45 MeV. Pragmatically, this can never be reduced to zero. The cause of these 
+neutrons is due to some background neutrons that coincidence with the delayed electron and thus appear to be a fusion neutron. 
+The reason for the background neutrons could be some accidental neutrons, room background during the experiment, photoneutrons 
+from bremsstrahlung etc. % cite P. Kammel et al. First observation of muonic hyperfine effects in pure  deuterium  
+The background studies will be dealt in great detail later. 
+
+Applying the condition of a coincidence of a neutron with a delayed electron as mentioned before will additionally introduce 
+a time dependent background to the fusion neutron spectrum, superimposed on the flat background that is due to accidental neutrons 
+in this delayed electron cut window. It could also be due to accidental room electrons (and not decay electrons) that appear in 
+coincidence with a neutron in the delayed time window specified.
+% cite P. Kammel et al. First observation of muonic hyperfine effects in pure  deuterium. 
+%MOre about energy spectrum later .... idea - check to see how the energy distribution of backgrounds, delays & fusion only look
+\subsection{Time spectrum of fusion neutrons}
+The neutron time spectrum (time of the neutron relative to the muon entrance time) for all neutron pulses from all channels was studied.
+This time is given by,\\
+$t_n- t_{\mu}$\\
+The incoming muon and subsequent neutron formed was in a time window of -40000 <$t_n- t_{\mu}$ < 40000 ns. This was chosen to be the 
+pile up free window, which avoided double counting of a muon neutron pair.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{fusionTime.png}}
+\end{tabular}
+\caption{Time spectrum of fusion neutrons in log scale - shows evidence of two lifetimes a prompt one and a delayed one}
+\label{fusionTime}
+\end{center}
+\end{figure}
+After applying all the appropriate cuts discussed in the fusion neutron defintion as discussed before, we obtain a fusion neutron time 
+spectrum as shown in figure ~\ref{fusionTime}. But this spectrum is not background free and has both the time dependent and time independent 
+flat backgound components in it. The sources and causes of this background is discussed below. 
+
+\subsubsection{Sources of Background }
+The fusion neutron spectrum shows shows two kinds of backgrounds:
+1) A time independent flat background - this originates due to room background,
+cosmics and due to accidental neutrons. They could also be due to
+misidentified gamma rays from bremsstrahlungs due to electrons from muon decay.
+This was minimized by applying stringent PSD cuts.
+2)  A time dependent background - this originates due to the beam related background,
+which changes with time as the beam is off for 600 ns
+before the muon hits the kicker. It could also originate from accidental capture of the
+muons by the walls of the TPC and/or in deuterium giving rise
+to a prompt and delayed lifetime component in the time spectrum.
+This was minimized by identifying neutrons associated with muon stopping in a fiducial
+volume of the TPC. Finally a time dependent delayed electron cut also introduced a background spectrum.
+The reason for the delayed electron was
+due to Michele electrons that decayed from the catalyzing muon and was thus
+produced after the neutron was formed due to fusion. From figure
+~\ref{esc_ndet} the time range for this was up to 5000 ns. Thus, detection of
+neutrons 5000 ns before the muon entered the TPC was hard to
+detect. This resulted in a humpy background from -5000 ns to 0 ns as shown in
+figure ~\ref{fusionTime} corresponding to the delayed electron cut.
+
+\subsection{Background Removal}
+To obtain a cleaner and corrected fusion neutron spectrum, it was inevitable to remove the above mentioned backgrounds. 
+A careful scrutiny of the time spectrum (~\ref{fusionTime}) reveals that the production of time independent background 
+neutrons and time dependent background neutrons are not in the same proportion. This was concluded by finding the average number of 
+neutrons on the left (-20000 to -15000 ns time range of figure ~\ref{fusionTime}) and right (15000 to 20000 ns time 
+range of figure ~\ref{fusionTime})  flat regions of the fusion time spectrum to be different. We failed to understand the exact 
+reason for this. But this helped us to select the appropriate regoin of evaluating the flat background which was 
+chosen to be from 15000 to 20000 ns. 
+ 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.65\textwidth}{!}{\includegraphics{fusionBkg.png}}
+\end{tabular}
+\caption{Time spectrum of fusion neutrons in red and time dependent normalized background in blue.}
+\label{fusionBkg}
+\end{center}
+\end{figure}
+A background spectrum was first generated to understand its nature and then remove it from the fusion spectrum. 
+As mentioned earlier the fusion spectrum was obtained by applying an additional energy cut < 2.45 MeV neutron energy 
+toa spectrum that had a neutron cut, was pile up protected, associated with a delayed electon and followed a muon stop 
+in the TPC. We call this spectrum the dalay spectrum for convinience. Thus, an energy cut of < 2.45 MeV gives fusion 
+neutron spectrum and an energy cut of a little higher than 2.45 MeV gives a backgound spectrum (since this includes all 
+accidental neutrons in the delayed coincidence time window of electrons relative to neutrons).    
+The procedure used to remove this background spectrum is described below:
+\subsubsection{Removal of flat time independent Background }
+An average number of neutron counts in the suitable region interest i.e. 15000 to 20000 ns was first found. This number represents the 
+flat time independent backgound. In the first step this number is subtracted from every bin of the fusion spectrum and the backgound 
+spectrum, generated by the energy cuts described above. Thus the flat background could now be set to zero in analyzing the fusion 
+time spectrum. 
+% Elog 534 very good & also see elog 537
+
+\subsubsection{Removal of time dependent Background }
+Next the background spectrum was normalized from the time window of -5000 ns to 0 ns with respect to the fusion neutron spectrum. 
+This is shown in blue color (in figure ~\ref{fusionBkg}). The red spectrum is the fusion time spectrum itself. The new normalized 
+background spectrum is then subtracted from the fusion spectrum, to obtain a background independent fusion spectrum, ready for 
+a lifetime fit. The errors of the fusion spectrum were propagated carefully and will be discussed in the error handling section. 
+
+%EDIT FROM HERE                                                                                                                                    
+
+%till here
+\subsection{Theoretical lifetime fit function.}
+
+The muon chemistry going on in deuterium gas governs the time spectrum of fusion neutrons which in turn helps us to determine the theoretical 
+nature of the lifetime fit function. Fusion of $d \mu d$ molecule can either be from the doublet or quartet state of muonic deuterium. 
+The experimental conditions (temperature, pressure, density etc.) ensure maximum fusion from the quartet state. 
+At 30 K $\lambda_d$  ($d \mu d$ molecular formation rate from doublet state) is much smaller i.e. 0.053 ~$\mu$s$^{-1}$ compared to 
+$\lambda_q$  ($d \mu d$ molecular formation rate from quartet state) which is 3.98 ~$\mu$s$^{-1}$.
+There is a prompt transition of muonic deuterium from quartet state to double state $\lambda_{qd}$ ~(37 ~$\mu$s$^{-1}$) at this temperature 
+which is followed by fusion of $d \mu d$ molecule and subsequent recycling of muon into this procedure. 
+This gives rise to two prominent lifetimes in the fusion neutron time spectrum.
+Thus, the fit function was assumed to have two lifetimes a prompt and a delayed one. The prompt lifetime was due 
+to hyperfine transitions from quartet state to doublet state (I guess! or formation of $d \mu d$ molecule from quartet state). 
+The slow lifetime component was due to recycling of muons back into the process. Thus the fit function essentially is the combination of
+two exponentially decaying functions corresponding to these two lifetimes.
+
+\\Each counter had a different HV and also could have different time resolutions. 
+This was also taken in account while formulating the fit function.
+The different HV's could contribute to different rise times t0 in the spectrum for each detector. Also the resolutions of the detectors and
+the time of flight of neutrons in the counter effect the time spectrum with a smearing followed by an exponential decay. 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.55\textwidth}{!}{\includegraphics{riseTime.png}}
+\end{tabular}
+\caption{Rise time t0 and sigma for detector NU3.}
+\label{riseTime}
+\end{center}
+\end{figure}
+
+All this was taken care by convoluting a Gaussian function with and exponential function i.e.EMG (exponentially modified Gaussian function).
+The result of the convolution was an error function.The detailed steps are shown below. Here t0 is the rise time and $\sigma$ is
+the sigma of the Gaussian. $\tau$ is the lifetime of the exponential decay.
+
+\newcommand{\mathsym}[1]{{}}
+\newcommand{\unicode}[1]{{}}
+
+\newcounter{mathematicapage}
+
+\begin{doublespace}
+\indent \(\int _{-\text{t0}}^{\infty }\frac{e^{-(t-t')^2}}{2\sigma ^2} e^{-t'/ \tau} dt'
+\end{doublespace}
+
+
+\noindent
+ Evaluating the above integral (using mathematica) and further simplifying taking the positive roots we get,\\ \\
+\begin{doublespace}
+\indent\(\(\left[\frac{e^{\frac{\sigma ^2-2 t \tau }{2 \tau ^2}} \sqrt{\frac{\pi }{2}} \left(\tau  \sqrt{\frac{\left(\sigma
+^2-(t+\text{t0}) \tau \right)^2}{\sigma ^2 \tau ^2}}+\sqrt{\frac{1}{\sigma ^2}} \left(-\sigma ^2+(t+\text{t0}) \tau \right) \text{Erf}\left[\frac{\sqrt{\frac{\left(\sigma
+^2-(t+\text{t0}) \tau \right)^2}{\sigma ^2 \tau ^2}}}{\sqrt{2}}\right]\right)}{\sqrt{\frac{1}{\sigma ^2}} \tau  \sqrt{\frac{\left(\sigma ^2-(t+\text{t0})
+\tau \right)^2}{\sigma ^2 \tau ^2}}},\text{Re}\left[\sigma ^2\right]>0\right]\)\)
+\end{doublespace}
+
+
+\begin{doublespace}
+\indent\(\(\left =e^{\frac{\sigma ^2-2 t \tau }{2 \tau ^2}} \sqrt{\frac{\pi }{2}\frac{1}{\sigma}} 
+\left(\frac{\tau  \sqrt{\frac{\left(\sigma^2-(t+\text{t0}) \tau \right)^2}{\sigma ^2 \tau ^2}}} {\tau  \sqrt{\frac{\left(\sigma^2-(t+\text{t0}) \tau \right)^2}{\sigma ^2 \tau ^2}}} - \frac {\sqrt{\frac{1}{\sigma ^2}} 
+\left(\sigma ^2-(t+\text{t0}) \tau \right)}{\tau  \sqrt{\frac{\left(\sigma^2-(t+\text{t0}) \tau \right)^2}{\sigma ^2 \tau ^2}}}\text{Erf}\left[\frac{\sqrt{\frac{\left(\sigma
+^2-(t+\text{t0}) \tau \right)^2}{\sigma ^2 \tau ^2}}}{\sqrt{2}}\right]\right)
+
+\end{doublespace}
+
+\begin{doublespace}
+\indent\(\(\left =e^{\frac{\sigma ^2-2 t \tau }{2 \tau ^2}} \sqrt{\frac{\pi }{2}\frac{1}{\sigma}} 
+\left(1 - \frac {\frac{1}{\sigma }
+\left(\sigma ^2-(t+\text{t0}) \tau \right)} {\tau  \frac{\sigma^2-(t+\text{t0}) \tau }{\sigma  \tau }}
+\text{Erf}\left[\frac{\sqrt{\frac{\left(\sigma
+^2-(t+\text{t0}) \tau \right)^2}{\sigma ^2 \tau ^2}}}{\sqrt{2}}\right]\right)
+
+\end{doublespace}
+
+\begin{doublespace}
+\indent\(\(\left = k e^{\frac{-t} {\tau } }
+\left(1 - \text{Erf}\left[\frac{\left(\sigma
+^2-(t+\text{t0}) \tau \right)}{\sigma  \tau \sqrt{2}}\right]\right)
+
+\end{doublespace}
+\noindent 
+where k is a constant given by,\\
+\begin{doublespace}
+\indent\(\(\left k = \sqrt{\frac{\pi }{2}\frac{1}{\sigma}} e^{\frac{\sigma ^2}{\tau}
+\end{doublespace}
+
+\noindent 
+Finally the theoretical lifetime fit function f(t) had the following form,\\
+\begin{doublespace}
+\begin{equation}\label{eq:fitFn}
+\indent\(\(\left f(t) = k_1 e^{\frac{-t} {\tau_1 } }
+\left(1 - \text{Erf}\left[\frac{\left(\sigma
+^2-(t+\text{t0}) \tau_1 \right)}{\sigma  \tau_1 \sqrt{2}}\right]\right)
++ k_2 e^{\frac{-t} {\tau_2 } }
+\left(1 - \text{Erf}\left[\frac{\left(\sigma
+^2-(t+\text{t0}) \tau_2 \right)}{\sigma  \tau_2 \sqrt{2}}\right]\right) + b
+\end{equation}
+\end{doublespace}
+\noindent
+
+where $\tau_1$ is the prompt lifetime and $\tau_2$ is the delayed lifetime, $k_1$ and $k_2$ are the two constants which represent the amplitude 
+for these two lifetime components respectively. The flat background on which this spectrum rests is given by b.
+%Edit again from here
+
+
+A finely binned histogram was generated to evaluate the sigma and rise time t0 for each detector.
+The bin size of this was a nano second. This was fitted with an error function and a single lifetime 
+(first term of equation ~\ref{eq:fitFn})
+in the very prompt region of the spectrum from % ---- look in elog---
+to appropriately find the rise time and sigma of each detector.
+An example of such a fit for one of the counters(NU3) is shown in figure ~\ref{riseTime}
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{riseTimeAlign.png}}
+\end{tabular}
+\caption{Rise time t0 aligned for all detectors.}
+\label{riseTimeAlign}
+\end{center}
+\end{figure}
+%insert fig. from elog
+It was observed that all detectors had slightly different rise
+time (shown in the table below)%-- make table --
+and a comparable sigma (except for the two home made counters which 
+had different sigmas). The respective rise times  of each detector was added in such a way that the 
+time spectrum was aligned to zero for convenience. This was important for the consistency of reading the time 
+spectrum also. The spectrum before and after aligning the rise time is shown in figure ~\ref{riseTimeAlign}.
+
+
+
+Thus the sigma and rise time were used as
+ fixed parameters in the fit function from this analysis. This increased the speed and performance
+ of fitting, though the fit function was very vulnerable to the value of the rise time and this had to 
+be done meticulously. 
+% to here
+
+% till here
+\subsection{Fitting the Spectrum}
+
+The ultimate fusion spectrum data was found by properly subtracting the normalized background spectrum 
+from this spectrum. The background was subtracted using the procedure described above, and fitting the spectrum with 
+the theoretical fit function ~\ref{eq:fitFn}. This would give us the prompt and slow lifetime values. But the errors 
+had t propagated carefully as the final spectrum was obtained by subtracting the background spectrum after normalizing.  
+The errors were taken care of as described below.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{1.0\textwidth}{!}{\includegraphics{finalErr.png}}
+\end{tabular}
+\caption{Left Panel is default error set by root and the right one is after propagating the errors}
+\label{finalErr}
+\end{center}
+\end{figure}
+
+\subsection{Error Propagation}
+During the procedure of Background Removal, errors were taken care of. The final signal S was calculated 
+as follows:
+\begin{equation}\label{eq:sig}
+S = F - n B
+\end{equation} 
+
+
+
+Here n is the normalization constant and B is the background signal and F the original fusion spectrum 
+(without background subtraction).
+Based on the equation ~\ref{eq:sig} the errors were calculated as shown in equation ~\ref{eq:errProp}
+\begin{equation}\label{eq:errProp}
+{\delta_S}^2 = {\delta_F}^2 + n^2 {\delta_B}^2
+\end{equation} 
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.65\textwidth}{!}{\includegraphics{Error.png}}
+\end{tabular}
+\caption{Errors set by fitting the fusion and the background spectrum}
+\label{Error}
+\end{center}
+\end{figure}
+
+To understand the results of the error propagation, the region in time from -10000 to -7000 ns 
+and plotted the same in a linear scale shown in figure ~\ref{finalErr}. The bins without content 
+do not have any errors associated with them, for e.g. times from -7300 to -7000 are empty and thus, have no errors.
+This is because by default ROOT uses Gaussian distribution and the errors are the square root of 
+bin content. This does not make any sense physically.
+We do have bins with really low statistics (data content) which need to be taken care 
+using Poisson distributions instead. Thus we had to think of a function that uses Gaussian distribution 
+for higher statistic counts and Poisson distribution for less data. 
+The error of a Poisson distribution is determined by the square root of the most probably value.
+The most probably value was found by the value of the fit function at that point and accordingly
+ the errors were further modified.
+
+%Needs to be edited as several changes were made in the code
+We fitted the spectrum and evaluated the function value at that point and added that to the original 
+errors, so that when the original errors given by equation ~\ref{eq:errPoi} is zero we 
+get a contribution from the fit 
+function and otherwise the weight of equation ~\ref{eq:errPoi} is higher for higher content in a bin. 
+This is given by ~\ref{eq:errPoi}.
+\begin{equation}\label{eq:errPoi}
+{\delta_Sf}^2 = {\delta_S}^2 + {\delta_f}^2
+\end{equation} 
+Thus the second term of equation ~\ref{eq:errPoi} was obtained from fitting the data.
+Only values of the bin center was used as data values for obtaining this term. 
+Both the background spectrum and the fusion spectrum was fitted individually and 
+the final value of ${\delta_f}^2$ was the quadrature of the individual fit results. 
+The background spectrum was fitted with an exponentially decaying function having a single rate, 
+whereas the fusion spectrum had two rates in the fit function (the green function in figure ~\ref{Error}). 
+A flat background was ignored for error handling as that was a constant and taken care of, by subtracting it 
+from both these spectra initially.
+The final fit results were obtained by fitting again and then the integral of the bin content was 
+used to fit data, as there could be fluctuations in data within a bin (the bin size was taken to be 
+20 ns). Bins with really low conted had to be fitted repeatedly to obtain a resonable error.
+% Newly written part - edit and add images/figures
+
+\subsubsection {Problems with preliminary fit results}
+Fitting the data with the above formulated fit function still had certain problems. It was observed that 
+the chi square of the flat pedestal regions on either side of the peak was good, but the central region 
+of the spectrum showed certain problems. Data was inconsistent with the theoretical function, 
+especially in the very prompt region from % look elogs
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.65\textwidth}{!}{\includegraphics{probThresh.png}}
+\end{tabular}
+\caption{Fit results before and after changing threshold energy for a large range show no major difference}
+\label{probThresh}
+\end{center}
+\end{figure}
+
+The list below enumerates a few possible reason that could have been a reason of this problem. This is followed by data to support 
+or disprove each possible.
+\begin {itemize}
+\item It was possible that the convolution of a Gaussian and a exponential to take care of the 
+rise time and sigma was not evaluated carefully, or something was missing in this function.
+
+To see if this really caused a problem in the fit function or not a finely binned histogram 
+was generated to evaluate the sigma and rise time t0 for each detector (this was done for all 
+detectors together but now we broke it down for each counter separately). The bin size of this 
+was a nano second. This was fitted with an error function and a single lifetime (first term of 
+equation ) in the very prompt region of the spectrum from to appropriately find the rise time 
+and sigma of each detector. The rise time depends on HV for different data 
+sets and detectors.  Sigma and t0 were different for different channels.
+The home made detectors had a very different t0 (NU11 and ND11).
+The rise time t0 for all detectors were aligned to zero and the fit was done again. The two fits are shown 
+in figure ~\ref{riseTimeAlign}. But this showed no improvements, so we disregarded this to be the cause of the failure of the fit.
+
+\item There could be muonic X - rays giving rise to prompt very low energy gamma rays which could
+be misidentified as neutrons causing a prompt spike in the initial time spectrum.
+The possible reason for this could be due to an inefficient PSD cut in the very low energy 
+region of the spectrum.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.65\textwidth}{!}{\includegraphics{cap_veto.png}}
+\end{tabular}
+\caption{Normalized difference between capture neutrons (energy < 2.45 MeV) and background neutrons from fusion (fusion background - capture)
+show a positive spike indicating no capture neutrons leaked from heavy materials in the spectrum}
+\label{cap_veto}
+\end{center}
+\end{figure}
+Thus by increasing the threshold from 1500 to 2000 channels we got unambiguous clean 
+neutrons which should get rid of this spike if it was the cause. But there was no difference in the spectrum as shown
+in figure ~\ref{probThresh}. So we disregarded this to be the cause of the failure of the fit.
+\item There could be capture neutrons from high Z materials of the walls. The muon decay from high 
+Z materials have a very short lifetime resulting in a spike in the spectrum. This could be due to 
+a muon stop definition that probably leaks in some muons stopped in the walls of the TPC.
+Capture neutron emitted due to mouns captured by deuterium have a longer lifetime and so 
+were disregarded as that could not cause a spike in the prompt part of the spectrum.
+
+To understand the effect of this, it was essential to generate a capture neutron spectrum 
+where the neutron is due to muon capture on a high - Z material. Capture neutrons do not have electrons 
+associated with them and so neutron spectrum generated by vetoing electrons could give us capture neutron 
+spectrum. Also, it is known that the energy of fusion neutrons is 2.45 MeV and so energies > 2.45 MeV would 
+futher exclude the possibility of misidentifying capture neutrons. 
+
+The spectrum shown in red color in the left panel of figure ~\ref{cap_veto} 
+is a veto electron time spectrum of neutrons associated with muon stops and having an energy > 2.45 MeV. 
+The blue spectrum is the background spectrum of the fusion neutrons and the two have been overlayed after normalizing 
+them. The right panael shows the difference between these two spectra (fusion background - capture neutron). 
+There exists a positive spike in this spectrum indicating that the fusion background neutrons dominate the early times 
+and so neutrons from high Z muon capture could not have caused the bazzaire behaviour in the very prompt part of the spectrum.
+
+
+\item A delayed electron cut was used from 200 to 5000 ns as a time difference between neutrons and
+electrons to avoid coincidences. This cut could be causing some systematic error here and so it
+was decided to change the lower threshold of this cut from 200 ns to -100 ns. 
+All spectrum with different time window of coincidence delay electrons displyed no difference in the fit results 
+and so this reason was also overruled. 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{SenergyAll.png}}
+\end{tabular}
+\caption{S Energy distribution}
+\label{senergy}
+\end{center}
+\end{figure}
+
+\item There could be an interference of the muon stop definition with a fusion.
+If the fusion occurred immediately after the muon stopped in the TPC, it could possible interfere
+with the muon stop definition.
+The muon stop definition could be time dependent. This could be tested with the help of a parameter called S energy.
+This is defined as,
+\begin{equation}\label{eq:SE}
+SE = E_i + 2 E_(i-1) 
+\end{equation} 
+where $E_i$ is the energy deposited on the pad where the muon stopped and $E_(i-1)$ 
+is the energy deposited the pad just before the muon stop pad (i.e. previous pad).
+The S energy distribution of pulse clusters associated with muon stops in shown in fig ~\ref{senergy}
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{1.1\textwidth}{!}{\includegraphics{SenergyTime.png}}
+\end{tabular}
+\caption{Normalized difference between different S Energy cuts applied to the Fusion neutron spectrum }
+\label{senergyTime}
+\end{center}
+\end{figure}
+\item
+
+A peak at around 1400 channels is the s energy for clean muon stops. Here clean means that the fusion has taken place later
+and so it signal is separated well in time from the muon stopping time. But if the fusion takes place very promptly i.e.
+soon after the muon stop, then there could be an evidence of a double pulse which is shown as a small bump around 
+1700 channels which corresponds to a 300 channel peak of helium. Thus 1700 channels correspond to fusions interfering with muon stops 
+when fusion takes place as soon as the muon is stopped and the signals are not well separated. If the S energy cut is gradually increased 
+from 300 (channels which is the default cut for muon stop definition) 
+then there would be a lesser proportion of clean muons stop and subsequently the fusions that take place later 
+(having a distinguishable pulse signal) would also be less compared to the fusions that happen early. This would lead to a 
+distortion in the fusion spectrum and would also help in checking the effect of the S energy cut on muon stop definition. 
+
+Thus the S energy cut was gradually increased to 600, 900 and 1200 channels for seeing the effects. 
+The right panel of figure ~\ref{senergy} shows the fusion neutron time spectrum after applying these cuts and overlaying all the four 
+spectra (color scheme is according to the color of the stat boxes). No conclusion could be drawn from these. 
+So a normalized difference of each S energy cut relative to the default cut of 300 channel was studied as shown in figure ~\ref{SenergyTime}. 
+The three plots shown in figure ~\ref{SenergyTime} just proved that the muon stop definition was not effected by changing the 
+S energy cut and this had no effect in the prompt part of the fusion spectrum.
+\item
+Another reason of the peak in the initial part of the spectrum could be due to thermalization of muonic deuterium in the very initial times.
+The kinetic energy increases due to collisions between muonic atoms ~\ref[22-26 of paper - muCF in D2 and HD] ..
+which causes an increase in temperature which in turn causes a resonant excited $d \mu d$ molecular state. 
+In this high energy state $\lambda_q$ and $\lambda_d$ are sensitive to the temperature and  $\lambda_d$ increases considerably
+with high temperature becoming almost comparable to $\lambda_q$ ~\ref[ muCF in D2 and HD].Thus,  $\mu d$ transitions can take place from 
+either ways i.e. from doublet to quartet or vice versa. So before thermalization 
+there are more muonic deuterium in the quartet state initially
+which possibly accounts for the excess number of fusions during the early stages. From ~\ref[muCF in D2 and HD], for our experiment 
+complete thermalization is expected to reach in ~100 ns. After thermalization the de-excited non resonant state is reached, which supports 
+hyperfine transition from the quartet state to double state predominantly. Also  $\lambda_q$ and $\lambda_d$ are now more stable. 
+From this point onwards (> ~ 100 ns ) the population of two spin states depends on their statistical weights
+ 2/3 for quartet state and 1/3 for doublet state.
+\end {itemize}
+
+\subsection{Effect of epithermal muonic molecular formation on fit range}
+Initially when $d \mu d$ are formed mostly via the resonant state, the epithermal muons also cause a formation of 
+$d \mu d$ molecules via the non resonant state. During this period before thermalization several $d \mu d$ formation 
+rates from various states overlap producing a very complication decay spectrum. This is evident in our data also.  
+%elog:517 see & copy images
+\begin{figure}[h]\label{fig:esc_ndet}
+\begin{center}
+\graphicspath{{./Figures/}}
+\resizebox*{0.65\textwidth}{!}{\includegraphics{esc_ndet.png}}
+\caption{Plot in red is the electron time spectrum as seen by the neutron detectors and blue is fusion time spectrum.}
+\end{center}
+\end{figure}
+A time difference of ~25 ns for fusions compared to electron spectrum exists which is due to the time of flight of the 
+fusion neutrons. The elctron spectrum shows a steady rise at -25 ns where as a spread or distribution 
+of this too (compared to the e - spectrum) owing to a non resonant lifetime component from epithermal muons during the initial 
+part before thermalization. 
+All these complicated thermalization processes occur within the first 100 ns and so it was decided to start the fit from 100 ns,
+instead of zero. The number 100 ns is taken from [ ] % cite D.V. Balin et al. High Precision Study of Muon Catalyzed Fusion 
+% in D2 and HD Gases. PNPI Preprint, 2729, 2007.
+and the process of non resonant molecular formation of $d \mu d$ is explained in great detail in the relevant chapter / section 
+of muon chemistry.
+
+This is also well supported and consistent with the data we have. A lifetime fit of the 
+
+\begin{figure}[h]\label{fig:range_fit}
+\begin{center}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{range_fit.png}}
+\caption{Effect of including early times in fit range}
+\end{center}
+\end{figure}
+
+
+
+To better understand and intrepret the fit results it was important to solve the population of the qrartet and doublet states 
+analytically and extract the useful parameters that can easily interpret a result. Thus, the next section is a detailed description 
+elaborating all steps involed in the analytical solution for population of states.
+\begin{figure}[h]\label{fig:shortLT}
+\begin{center}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{shortLT.png}}
+\caption{Plot showing the variation of short lifetime with fit start time}
+\end{center}
+\end{figure}
+
+\subsection{Analytical solution for population of states}
+As discussed before in the muon chemistry section, the fusion neutrons are produced by $\mu$d atom after undergoing a lot of 
+complicated reaction channels and cycles. The populations of the doublet ($n_{1/2}$) and quartet ($n_{3/2}$) states of the 
+the $\mu$d atom can be found by solving the sets of coupled differential equations given below:
+
+\begin{equation} \label{eq:rate}
+\begin{align*}
+&\frac{dn_{1/2}}{dt} = - (\lambda_{\mu} + \phi \lambda_{d})n_{1/2} + \phi \lambda_{qd} n_{3/2} +  \frac{1}{3} \lambda_f(\left 1-s\right) n_{dd}&\\
+&\frac{dn_{3/2}}{dt} =  - (\lambda_{\mu} + \phi \lambda_{qd} + \phi \lambda_{q})n_{3/2} + \frac{2}{3} \lambda_f(\left 1-s\right) n_{dd}&\\
+&\frac{dn_{dd}}{dt} =  \phi \lambda_{d}n_{1/2} +  \phi \lambda_{q}n_{3/2} - (\lambda_{\mu} + \lambda_f) n_{dd}
+\end{align*}
+\end{equation} 
+
+\noindent Will explain meanings of all symbols later (they have meanings acc. to the proposal as all symbols are inherited from the proposal.....). 
+For simplicity we assumed the coefficients of $n_{1/2}$ and $n_{3/2}$ in the above set of equations ~\ref{eq:rate} 
+as a, b, c and d. Thus the problem now reduces down to solving the eigen values and eigen vectors of the matrix 
+representation of the equation in terms of a, b, c and d as shown below\\
+\begin{doublespace}
+\noindent\({\left(
+\begin{array}{cc}
+ a & b \\
+ c & d
+\end{array}
+\right)}\)
+\end{doublespace}
+\\
+\noindent The eigenvalues of this matrix is given by,\\
+\begin{equation} \label{eq:value}
+\left\{\frac{1}{2} \left(a+d-\sqrt{a^2+4 b c-2 a d+d^2}\right),\frac{1}{2} \left(a+d+\sqrt{a^2+4 b c-2 a d+d^2}\right\}
+\end{equation}
+
+
+\noindent The eigen vectors of this matrix in general are given by\\
+\begin{equation} \label{eq:vector}
+\noindent\(\(\left\{-\frac{-a+d+\sqrt{a^2+4 b c-2 a d+d^2}}{2 c},1\right\},\left\{-\frac{-a+d-\sqrt{a^2+4 b c-2 a d+d^2}}{2 c\
+},1\right\}\)\)
+\end{equation}
+The above general equations will be used throughout to find eigenvalues and eigenvectors for different cases. 
+We consider two important cases, first we investigate the effect of switching off recycling of muons in the process 
+(which is not true in the real experiment but has just been studied to see the effects). 
+Next we include recycling and do not assume or ignore any term. We could then see the effect of ignoring the 
+negligibly small terms in the expression for eigenvalues and eigenvectors later.
+
+\noindent \textbf {Switching off recycling:}\\
+To begin with we deal with a simple case of no recycling and see how the system behaves by plotting the solutions 
+for doublet and quartet states. 
+The last term in equation ~\ref{eq:rate} should be set to zero as no $d \mu d$ molecules are formed in order 
+to get rid of the effect of recycling.  Also the third set of equation is zero in this case. 
+The order of the equations have been reversed with respect to the order in equation ~\ref{eq:rate} so that 
+equations ~\ref{eq:value} and ~\ref{eq:vector} could be used effectively to find the eigenvalues and eigenvectors 
+respectively.
+Thus equation ~\ref{eq:rate} now reduces to 
+
+\begin{equation} \label{eq:noRe}
+\begin{align*}
+&\frac{dn_{3/2}}{dt} =  - (\lambda_{\mu} + \phi \lambda_{qd} + \phi \lambda_{q})n_{3/2} &\\ 
+&\frac{dn_{1/2}}{dt} = - (\lambda_{\mu} + \phi \lambda_{d})n_{1/2} + \phi \lambda_{qd} n_{3/2}
+\end{align*}
+\end{equation}
+\noindent The eigen state matrix of the above system equaitons can be expressed as, 
+
+\begin{doublespace}
+\noindent\(\(\left(
+\begin{array}{cc}
+ -\phi  \lambda _q-\phi  \lambda _{qd}-\lambda _{\mu}\right)} & 0\\
+ \phi  \lambda _{qd}\right)} & -\phi  \lambda _d-\lambda _{\mu } 
+
+\end{array}
+\right)\)\)
+\end{doublespace}
+
+For simplicity the matrix elements were replaced by a, b c, and d given by the following equations 
+so that we can easily use equations ~\ref{eq:value} and ~\ref{eq:vector} to find the eigenvalues and 
+eigen vectors respectively.
+\begin{equation}
+\begin{align*}
+a = - \phi  \lambda _{qd} -\phi  \lambda _q -\lambda _{\mu } 
+\end{align*}
+\end{equation}
+\begin{equation}
+\begin{align*}
+b = 0
+\end{align*}
+\end{equation}
+\begin{equation}
+\begin{align*}
+c = \phi  \lambda _{qd}
+\end{align*}
+\end{equation}
+\begin{equation}
+\begin{align*}
+& d =  - \phi  \lambda _d -\lambda _{\mu }
+\end{align*}
+\end{equation}
+
+
+
+\noindent The eigen values are given by,
+
+\begin{doublespace}
+\noindent\(\(\left\{-\phi  \lambda _d-\lambda _{\mu }, -\phi  \lambda _q-\phi  \lambda _{qd}-\lambda _{\mu }\right\}\)\)
+\end{doublespace}
+
+\noindent Representing the rate of each state i.e. the eigenvalues by $\lambda_1$ and $\lambda_2$, the expressions for these are
+\begin{equation} \label{eq:eValue1}
+\lambda_1 = -\phi  \lambda _d-\lambda _{\mu }
+\end{equation}
+
+\begin{equation} \label{eq:eValue2}
+\lambda_2 = -\phi  \lambda _q-\phi  \lambda _{qd}-\lambda _{\mu }
+\end{equation}
+\noindent And the eigen vectors are, 
+\begin{doublespace}
+\noindent\(\(\left\{\{0,1\},\left\{-\frac{-\lambda _d+\lambda _q+\lambda _{\text{qd}}} {\lambda _{\text{qd}}},1\right\}\right\}\)\)
+\end{doublespace}
+
+\noindent For simplicity we used the following substitution,
+
+\begin{equation} \label{eq:Y}
+Y = -\frac {-\lambda _d+\lambda _q+\lambda _{\text{qd}}} {\lambda _{\text{qd}}}
+\end{equation}
+
+\noindent The general solution to the set of coupled differential equation represented by ~\ref{eq:noRe} is given by,
+\\
+\begin{doublespace}
+\left( \begin{array}{c} n_{3/2} \\
+n_{1/2} \end{array} \right) = a_1 e^{\lambda_1 t} \left(\begin{array}{c} 0 \\
+1 \end{array}\right) + a_2e^{\lambda_2 t} \left( \begin{array}{c} Y \\
+1 \end{array} \right)
+\end{doublespace}
+
+\begin{figure}[h]\label{fig:doublet_noRe}
+\begin{center}
+\graphicspath{{./Figures/}}
+\resizebox*{1.1\textwidth}{!}{\includegraphics{doublet_norecycle.png}} 
+\caption{Plot showing the doublet state populations in linear and log scale}
+\end{center}
+\end{figure}
+
+\noindent Next we plug in the initial conditions to find $a_1$ and $a_2$. 
+\noindent Initially at t = 0, the population 
+of doublet and quartet states is proportional to 1/3 and 2/3 respectively, owing to their relative possible spin states, 
+as explained previously. This gives us,\\
+\begin{doublespace}
+\left( \begin{array}{c} \frac{2}{3} \\
+\frac{1}{3} \end{array} \right) = \left(\begin{array}{c}  Y a_2 \\
+a_1 + a_2 \end{array}\right) 
+\end{doublespace}
+
+\begin{figure}[h]\label{fig:quartet_noRe}
+\begin{center}
+\graphicspath{{./Figures/}}
+\resizebox*{1.1\textwidth}{!}{\includegraphics{quartet_norecycle.png}}
+\caption{Plot showing the quartet state populations in linear and log scale}
+\end{center}
+\end{figure}
+
+
+\noindent From the above we can readily see that, \\
+\begin{doublespace}
+$a_1 = \frac{(Y - 2)}{3Y}$
+and $a_2 = \frac{2}{3 Y}$  
+\end{doublespace}
+
+\noindent The final solution depicting the population of each state is thus given by,
+
+\begin{equation}\label{eq:doublet_noRe}
+n_{1/2} = \frac{(Y - 2)}{3 Y} e^{ \lambda_1 t} + \frac{2}{3 Y} e^{ \lambda_2 t}
+\end{equation}
+
+\begin{equation}\label{eq:quartet_noRe}
+ n_{3/2} = \frac{2}{3} e^{ \lambda_2 t}
+\end{equation}
+
+
+To understand the behaviour of ratio of quartet to total we have this plot. Also the quartet state actually shows no recycling 
+and has just one lifetime i.e. transition of the muons from quartet to doublet populations.
+
+\noindent Ratio of the two amplitudes of the states 
+
+\noindent Quartet : Doublet \approx  53 : 1 
+
+
+\begin{figure}[h]\label{fig:ratio_noRe}
+\begin{center}
+\graphicspath{{./Figures/}}
+\resizebox*{1.1\textwidth}{!}{\includegraphics{ratio_norecycle.png}}
+\caption{Plot showing the double state in linear and log scale}
+\end{center}
+\end{figure}
+
+\noindent The fusion spectrum is thus given by,
+\begin{equation}\label{eq:tot_pop_noRe}
+n(t) = \lambda_d \beta_d n_{1/2} + \lambda_q \beta_q n_{3/2}
+\end{equation}
+where $\beta_d$ and $\beta_q$ are the probabilities of the formation of d$\mu$d molecules from the doublet state and quartet state respectively.
+
+The experimentally obtained fusion neutron time spectrum was empirically fitted with a two lifetime fit function 
+owing to the muon chemistry that yields these neutrons. This can be compared with the above equation ~\ref{eq:tot_pop_noRe} and 
+is given by our theoretical fit function as,
+\begin{equation}\label{eq:func_pop_noRe}
+n(t) = A_1 e^{-\lambda_1 t} + A_2 e^{-\lambda_2 t}
+\end{equation}
+
+where we ignored the time independent flat background as that was well taken care to be zero (after background subtraction as 
+discussed before) and thus fixed to be zero. This helps to reduce the number of parameters in the fit function resulting in 
+less ambiguous fit results.\\
+Simplifying equation ~\ref{eq:tot_pop_noRe} we get the ratio of the amplitudes as,
+
+\begin{equation}\label{eq:amp_ratio_noRe}
+\begin{align}
+& \frac {A_1}{A_2} = \frac {\lambda_d \beta_d (2 - Y)} {2 (\lambda_d \beta_d  + Y \lambda_q \beta_q)}
+\end{align}
+\end{equation}
+
+
+%\textbf {To be continued and completed ..............}
+
+
+\paragraph{Including recycling:}\\
+It is known that fusion of d$\mu$d molecule takes place almost instantly in 1 ns time and so the population of d$\mu$d molecules attain 
+equilibrium very promptly making them pretty stable and so the rate $\frac{dn_{dd}}{dt}$ can be taken to be zero for practical purposes. 
+Substituting $\frac{dn_{dd}}{dt} = 0 $ in equation ~\ref{eq:rate} we get,
+\begin{equation} \label{eq:dmd}
+\begin{align*}
+&\phi \lambda_{d}n_{1/2} +  \phi \lambda_{q}n_{3/2} = (\lambda_{\mu} + \lambda_f) n_{dd} & \\
+& n_{dd} = \frac {\phi \lambda_{d}n_{1/2} +  \phi \lambda_{q}n_{3/2}} {(\lambda_{\mu} + \lambda_f)}
+\end{align*}
+\end{equation}
+
+\noindent Plugging the value of $n_{dd}$ in equation ~\ref{eq:rate} and simplifying we get the eigen state matrix of this set of differential equations as,
+
+\begin{doublespace}
+\noindent\(\(\left(
+\begin{array}{cc}
+ -\phi  \lambda _d-\lambda _{\mu }+\frac{(1-s) \phi  \lambda _d \lambda _f}{3 \left(\lambda _f+\lambda _{\mu }\right)} & \phi  \lambda _{\text{qd}}+\frac{(1-s)
+\phi  \lambda _f \lambda _q}{3 \left(\lambda _f+\lambda _{\mu }\right)} \\
+ +\frac{2 (1-s) \phi  \lambda _d \lambda _f}{3 \left(\lambda _f+\lambda _{\mu }\right)} & -\phi  \lambda _q-\phi  \lambda _{\text{qd}}-\lambda _{\mu
+}+\frac{2 (1-s) \phi  \lambda _f \lambda _q}{3 \left(\lambda _f+\lambda _{\mu }\right)}
+\end{array}
+\right)\)\)
+\end{doublespace}
+\noindent The term \noindent\(\frac{(1-s) \phi  \lambda _d \lambda _f}{3 \left(\lambda _f+\lambda _{\mu }\right)}\)
+can be ignored. 
+\noindent Also using $\lambda_f >> \lambda_{\mu}$ we get the matrix as,\\
+\begin{doublespace}
+\noindent\({\left(
+\begin{array}{cc}
+ -\phi  \lambda _d-\lambda _{\mu } + \frac{1}{3} (1-s) \phi  \lambda _d  & \phi  \lambda _{\text{qd}} +  \frac{1}{3} (1-s) \phi  \lambda _q\\
+ \frac{2}{3} (1-s) \phi  \lambda _d &  -\phi  \lambda _q+\frac{2}{3} (1-s) \phi  \lambda _q-\phi  \lambda _{\text{qd}}-\lambda _{\mu }
+\end{array}
+\right)}\)
+\end{doublespace}
+For simplicity the matrix elements were replaced by a, b c, and d given by the following equations:
+\begin{equation} 
+\begin{align*}
+a = -\phi  \lambda _d-\lambda _{\mu } +  \frac{1}{3} (1-s) \phi  \lambda _d
+\end{align*}
+\end{equation} 
+\begin{equation}
+\begin{align*} 
+b = \phi  \lambda _{\text{qd}} + \frac{1}{3} (1-s) \phi  \lambda _q
+\end{align*}
+\end{equation} 
+\begin{equation}
+\begin{align*} 
+c =  \frac{2}{3} (1-s) \phi  \lambda _d
+\end{align*}
+\end{equation} 
+\begin{equation}
+\begin{align*} 
+& d = -\phi  \lambda _q + \frac{2}{3} (1-s) \phi  \lambda _q-\phi  \lambda _{\text{qd}}-\lambda _{\mu } &\\
+\end{align*}
+\end{equation} 
+
+Here again we assumed $\phi  \lambda _q$ can be ignored compared to $\phi  \lambda _{\text{qd}}$ and $\lambda _{\mu }$
+
+\noindent Simplifying further gives us the first eigen value of the matrix to be\\
+%From Mathematica 
+\begin{equation}
+\begin{align} 
+& \lambda_1=\frac{-1}{6} \left((2+s) \phi  \lambda _d+\phi  \left((1+2 s) \lambda _q+3 \lambda _{qd}\right)+ 6\lambda _{\mu }+\\
+& \sqrt { \left(\phi ^2 \left((2+s)^2 \lambda _d^2+\left(\lambda _q+2 s \lambda _q+3 \lambda _{qd}\right){}^2
+ +2 \lambda _d \left((2+s (-13+2 s)) \lambda _q+3 (2-5 s) \lambda _{qd}\right)\right)}\right)
+\end{align} 
+\end{equation} 
+
+%end mathematica
+\noindent If $\phi \lambda_d$ is ignored compared to the other terms we get the following approximation,\\
+\begin{equation}
+\begin{align} 
+ \lambda_1 \approx \frac{-1}{3} \left(\phi  \left((1+2 s) \lambda _q+3 \lambda _{qd} + 3 \lambda _{\mu }\right)
+\end{align} 
+\end{equation}
+%\begin{equation} \label{eq:e1}
+%\lambda_1 \approx d = -\phi  \lambda _q + \frac{2}{3} (1-s) \phi  \lambda _q-\phi  \lambda _{qd}-\lambda _{\mu } &\\
+%\end{equation} 
+
+
+
+%\begin{equation} \label{eq:e2}
+%\lambda_2 \approx a = -\phi  \lambda _d-\lambda _{\mu }
+%\end{equation} 
+\noindent Similarly the second eigen value of the matrix is found to be\\
+\begin{equation}
+\begin{align} 
+& \lambda_2=\frac{-1}{6} \left((2+s) \phi  \lambda _d+\phi  \left((1+2 s) \lambda _q+3 \lambda _{qd}\right)+ 6\lambda _{\mu }-\\
+& \sqrt { \left(\phi ^2 \left((2+s)^2 \lambda _d^2+\left(\lambda _q+2 s \lambda _q+3 \lambda _{qd}\right){}^2
+ +2 \lambda _d \left((2+s (-13+2 s)) \lambda _q+3 (2-5 s) \lambda _{qd}\right)\right)}\right)
+\end{align} 
+\end{equation} 
+
+%end mathematica
+\noindent Again, if $\phi \lambda_d$ is ignored compared to the other terms we get the following approximation,
+\begin{equation}
+\begin{align} 
+ \lambda_2 \approx \frac{-1}{3} \left(\phi  \left((1+2 s) \lambda _q+ 3 \lambda _{\mu }\right)
+\end{align} 
+\end{equation}
+
+Plugging in the values of a, b, c and d from the above equations ~\ref  without ignoring 
+anything the approximate results for the eigen vectors in matrix form are as follows. 
+Thus we get a more complicated eigen vector matrix as follows.
+
+\left(\begin{array}{c}
+X_1 \\
+1
+\end{array}
+\right)}\) and 
+\left(
+\begin{array}{cc}
+X_2\\
+1
+\end{array}
+\right)}\)
+\end{doublespace}
+
+\noindent where $X_1$ and $X_2$ are the first elements of the two eigen vectors given by the equations below:
+\begin{equation} 
+\begin{align}
+& X_1 = \frac{a-d - X}{2c} &\\
+& = \frac{\phi  \lambda _q + \phi  \lambda _{qd} - \frac{2}{3} (1-s) \phi  \lambda _q  - X} {\frac{4}{3} (1-s) \phi  \lambda_d} &\\
+\end{align}
+\end{equation} 
+
+\begin{equation}
+\begin{align}
+& X_2 = \frac{a-d + X}{2c} &\\
+& = \frac{\phi  \lambda _q + \phi  \lambda _{qd} - \frac{2}{3} (1-s) \phi  \lambda _q  + X} {\frac{4}{3} (1-s) \phi  \lambda_d} &\\
+\end{align}
+\end{equation}
+
+where we again assumed $\lambda_{qd} \gg \lambda_{d}$ and thus ignored all terms involving $\lambda_{d}$ 
+compared to $\lambda_{qd}$ in the numerator. X is a variable designated for the long expression shown below
+\begin{equation}
+\begin{align}
+& X = \sqrt{(a-d)^2 + 4bc} &\\
+& = \sqrt{(\phi  \lambda _q + \phi  \lambda _{qd})^2 - \frac{4}{3} (1-s) \phi^2  \lambda _q\left(1+\lambda_{qd}\right)} &\\
+\end{align}
+\end{equation}
+
+\noindent The symbols $X_1$, $X_2$ and $X$ have been used just for convenience and simplicity and have no other significance
+
+\\
+\noindent \textbf{ Initial conditions:}
+
+The the solution to the set of coupled differential equation represented by ~\ref{eq:rate} is given by,
+\\
+\begin{doublespace}
+\left( \begin{array}{c} n_{1/2} \\
+n_{3/2} \end{array} \right) = a_1 e^{-\lambda_1 t} \left(\begin{array}{c} X_1 \\
+1 \end{array}\right) + a_2e^{-\lambda_2 t} \left( \begin{array}{c} X_2 \\
+1 \end{array} \right)
+\end{doublespace}
+where $a_1$ and $a_2$ are the amplitudes of each state determined from the initial conditions. Initially at t = 0, the population 
+of doublet and quartet states is proportional to 1/3 and 2/3 respectively, owing to their relative possible spin states, 
+as explained previously. \\
+\noindent Thus, for t = 0 we have,\\
+\begin{doublespace}
+\left( \begin{array}{c} \frac{1}{3} \\
+\frac{2}{3} \end{array} \right) = \left(\begin{array}{c} a_1 X_1 \\
+a_1 \end{array}\right) + \left( \begin{array}{c} a_2 X_2 \\
+a_2 \end{array} \right)
+\end{doublespace}
+\noindent From the above we can readily see that, \\
+\begin{doublespace}
+$a_1 = \frac{(2 X_2 - 1)}{3(X_2 - X_1)}$
+and $a_2 = \frac{(1 - 2 X_1)}{3(X_2 - X_1)}$  
+
+\end{doublespace}
+\noindent which gives,
+\begin{doublespace}
+\left( \begin{array}{c} n_{1/2} \\ 
+n_{3/2} \end{array} \right) = \frac{(2 X_2 - 1)}{3(X_2 - X_1)} e^{-\lambda_1 t} \left(\begin{array}{c} X_1 \\ 
+1 \end{array}\right) + \frac{(1 - 2 X_1)}{3(X_2 - X_1)} e^{-\lambda_2 t} \left( \begin{array}{c} X_2 \\ 
+1 \end{array} \right)
+\end{doublespace}
+
+\begin{figure}[h]\label{fig:doublet}
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.5\textwidth}{!}{\includegraphics{doublet.png}} 
+\resizebox*{0.5\textwidth}{!}{\includegraphics{doublet_log.png}} 
+\end{tabular}
+\caption{Plot showing the doublet state in linear and log scale}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]\label{fig:quartet}
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.5\textwidth}{!}{\includegraphics{quartet.png}}
+\resizebox*{0.5\textwidth}{!}{\includegraphics{quartet_log.png}} 
+\end{tabular}
+\caption{Plot showing the double state in linear and log scale}
+\end{center}
+\end{figure}
+
+
+Substituting the values of $\lambda_1$ and $\lambda_2$ from equations ~\ref{eq:e1} and ~\ref{eq:e2} respectively and then solving 
+the above matrix equation we get the simplified matrix equation as,
+
+\begin{doublespace}
+\left( \begin{array}{c} n_{1/2} \\
+n_{3/2} \end{array} \right) = \left(\begin{array}{c}  
+\frac{X_1(2 X_2 - 1)}{3(X_2 - X_1)}e^{\lambda_1 t} + 
+\frac{X_2(1 - 2 X_1)}{3(X_2 - X_1)} e^{\lambda _2 t}\\
+\frac{(2 X_2 - 1)}{3(X_2 - X_1)}e^{\lambda _1 t} + 
+\frac{(1 - 2 X_1)}{3(X_2 - X_1)} e^{\lambda _2 t}
+ \end{array}\right)
+\end{doublespace}
+\\
+Just to understand how the population of these states vary with time, I plotted the function for $n_{1/2}$ and $n_{3/2}$ 
+for a time range of 0 to 10 $\mu$s as shown in the figure ~\ref{fig:doublet} 
+To validate the expression we simply plot the two states, I took the following values of the constants involved 
+(taken from the proposal and paper - http://pra.aps.org/abstract/PRA/v28/i5/p2611_1)
+\\
+%$\lambda_f$ = 1000 $\mu$s^{-1};  \hspace{5 mm} $\lambda_d$ = 0.053 $\mu$s^{-1}; \hspace{5 mm} $\lambda_q$ = 3.98 $\mu$s^{-1};
+%\hspace{5 mm}$\phi$ = 0.05; \\ 
+%&\hspace{10 mm}$\lambda_{qd}$ = 37 per $\mu$s^{-1}; \hspace{5 mm}$\lambda_{\mu}$ =  0.455160 per $\mu$s^{-1};
+
+
+\\
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Parameter        &Value at 30K\\
+\hline
+ $\lambda_f$          &1000 $\mu$s^{-1}\\
+\hline
+$\lambda_d$          &0.053 $\mu$s^{-1}\\
+\hline
+$\lambda_q$  &3.98 $\mu$s^{-1}\\
+\hline
+$\phi$ &0.05 of LH$_2$\\
+\hline
+$\lambda_{qd}$ &37 $\mu$s^{-1}\\
+\hline
+$\lambda_{\mu}$  & 0.455160 $\mu$s^{-1}\\
+\hline
+\end{tabular}
+\caption{The table shows the values of physical parameters used in our calculations}
+\label{tab:para}
+\end{table}
+
+
+\noindent Thus, the populations of each of these states in terms of our defined symbols is given by the equations
+\begin{equation}\label{eq:pop1}
+n_{1/2} = \frac{X_1(2 X_2 - 1)}{3(X_2 - X_1)} e^{ \lambda_1 t} + \frac{X_2(1 - 2 X_1)}{3(X_2 - X_1)} e^{ \lambda_2 t}
+\end{equation}
+
+\begin{equation}\label{eq:pop2}
+ n_{3/2} = \frac{(2 X_2 - 1)}{3(X_2 - X_1)} e^{ \lambda_1 t} + \frac{(1 - 2 X_1)}{3(X_2 - X_1)} e^{ \lambda_2 t}
+\end{equation}
+
+\noindent The time spectrum for the ratio of the quartet population to that of the total population is shown in the figure ~\ref{fig:ratio}
+\begin{figure}[h]\label{fig:ratio}
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.5\textwidth}{!}{\includegraphics{quartet_ratio.png}}
+\resizebox*{0.5\textwidth}{!}{\includegraphics{quartet_ratio_log.png}} 
+\end{tabular}
+\caption{Plot showing the ratio of total to quartet state in linear and log scale}
+\end{center}
+\end{figure}
+It was discussed that embedded in the time dependence of the fusion neutrons
+are the $d\mu d$ molecular formation rates
+from the $F = 1/2, 3/2$ hyperfine states ($\lambda^q_{dd}$ and $\lambda^d_{dd}$)
+and the hyperfine transition rate between the two hyperfine
+states ($\Lambda_{qd}$). Consequently, the detection of fusion neutrons
+should enable the determination of the kinetics parameters
+$\Lambda_{qd}$, $\Lambda^Q_{dd}$ and $\Lambda^S_{dd}$
+that are important in the extraction of the $\mu^-$d doublet capture rate
+$\Lambda_D$ from the decay electron time spectrum.
+\noindent The fusion spectrum is thus given by,
+\begin{equation}\label{eq:tot_pop}
+n(t) = \lambda_d \beta_d n_{1/2} + \lambda_q \beta_q n_{3/2}
+\end{equation}
+\noindent where $\beta_d$ and $\beta_q$ are the probabilities of the formation of d$\mu$d molecules from the doublet state and quartet state respectively.
+
+
+The experimentally obtained fusion neutron time spectrum was empirically fitted with a two lifetime fit function 
+owing to the muon chemistry that yields these neutrons. This can be compared with the above equation ~\ref{eq:tot_pop} and 
+is given by our theoretical fit function as,
+\begin{equation}\label{eq:func_pop}
+n(t) = A_1 e^{-\lambda_1 t} + A_2 e^{-\lambda_2 t}
+\end{equation}
+
+where we ignored the time independent flat background as that was well taken care to be zero (after background subtraction as 
+discussed before) and thus fixed to be zero. This helps to reduce the number of parameters in the fit function resulting in 
+less ambiguous fit results.\\
+\noindent Simplifying equation ~\ref{eq:tot_pop} we get the ratio of the amplitudes as,
+
+\begin{equation}\label{eq:amp_ratio}
+\begin{align}
+& \frac {A_1}{A_2} = \frac {(\lambda_d X_1 + \lambda_q)(2 X_2-1)} {(\lambda_d X_2 + \lambda_q)(1 - 2 X_1)}
+\end{align}
+\end{equation}
+
+Plugging in the values of the parameters from table ~\ref{tab:para} and solving for X$_1$, X$_2$, 
+we get the values their values from equation ~\ref{} and ~\ref{} as X$_1$ = -0.993882 and X$_2$ = 1158.65.
+The ratio A$_1$ : A$_2$ from equation ~\ref{eq:amp_ratio} is evaluated to be 46.563. The experimental value 
+of this ratio is $\approx$ 100. There could be two possible reasons for this disparity which are as follows:
+\begin {itemize}
+\item The parameters used may not be as accurate as desired in the calculations.
+This can be understood by investigation the effects of varying all the parameters used in evaluating A$_1$ : A$_2$
+\item There could still be some remnant background due to various factors like misidentifying capture neutrons, 
+gamma rays etc. to be fusion neutrons. 
+\end {itemize}
+In the subsection below we study the effect of changing the input parameters used in finding A$_1$ : A$_2$.
+\subsubsection{Effect of changing various parameters on A$_1$ : A$_2$} 
+A plot of the amplitude ratio  vs. $\lambda_{qd}$ is shown in figure ~\ref{fig:qd}. This reveals that there is almost no variation 
+of this ratio with $\lambda_{qd}$. 
+\begin{figure}[h]\label{fig:qd}
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{amp_qd.png}}
+\end{tabular}
+\caption{Plot showing the ratio of total to quartet state in linear and log scale}
+\end{center}
+\end{figure}
+This can be accouted due to the fact that at the cryogenic temperatures of Musun, almost all 
+$\mu d$ atoms in the quartet state quickly transit to the doublet state (as discussed in the muon chemistry section of experimental design), 
+irrespective of the value of $\lambda_{qd}$. Thus, the population of quartet and doublet states do not change much. 
+Also, the plot shows a slightly rising trend, which means that the quartet population increases very sparsely with increasing 
+$\lambda_{qd}$. Recycling of muons increase due to increasing $\lambda_{qd}$, which produces more muons in the quartet state. 
+This could be the possible explanation of the slight rise in the ratio.
+
+A plot of the amplitude ratio  vs. $\lambda_q$ is shown in figure ~\ref{fig:q}. This shows a variation
+of this ratio with $\lambda_{q}$.  The $\mu d$ atoms in the quartet state would obviously increase as the rate of formation of 
+the $\mu d$ atoms in the quartet state increases i.e. $\lambda_q$ increases. Thus, the ratio of amplitude of population of 
+quartet to double state increases.
+
+\begin{figure}[h]\label{fig:q}
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{amp_q.png}}
+\end{tabular}
+\caption{Plot showing the ratio of total to quartet state in linear and log scale}
+\end{center}
+\end{figure}
+
+Finally, a plot of the amplitude ratio  vs. $\lambda_d$ is shown in figure ~\ref{fig:d}. This shows a variation
+of this ratio with $\lambda_{d}$.  The $\mu d$ atoms in the quartet state would increase as the rate of formation of
+the $\mu d$ atoms in the quartet state increases i.e. $\lambda_d$ increases. Thus, the ratio of amplitude of population of
+quartet to double state decreases. But the effect is very prominant in this case. A slight rise in $\lambda_d$ drastically 
+decreses the value of the ratio. This could be attributed due to the fact that fusion of $d \mu d$ molecules occurs 
+predominantly from the quartet state. When doublet population increases fusion is reduced and so reclying of the catalyzing 
+muon is in turn inhibited, causing an enhanced decrease in quartet population. This reflects the sensitivity of $\lambda_d$ 
+on the ratio and also on our data. 
+
+\begin{figure}[h]\label{fig:d}
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.7\textwidth}{!}{\includegraphics{amp_d.png}}
+\end{tabular}
+\caption{Plot showing the ratio of total to quartet state in linear and log scale}
+\end{center}
+\end{figure}
+
+
+%placeholder and template for figure
+%\newpage
+
+\subsection{Revised fit function}
+
+After aligning all detectors relative to the rise time and studying the effect of epithermal muon before accquiring 
+thermal equilibrium, we concluded to change the start time of fit range from 0 to 100 ns. If the fit starts from 100 ns 
+there would be no effect of the rise time t$_0$ and factor due to detector resolution $\sigma$. Instead a simple two lifetime fit 
+function was good enough to describe our data. This is proved in the figure ~\ref{fig:comp}
+
+%change figure in two columns showing both fits with t0, sigma & without them
+\begin{figure}[h]\label{fig:comp}
+\begin{center}
+\begin{tabular}{cc}
+\graphicspath{{./Figures/}}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{comp.png}}%please change fig
+\end{tabular}
+\caption{Comparing fit results  - old version left panel and new revised version - right panel}
+\end{center}
+\end{figure}
+
+It was essential for the experiment to know the ratio of doublet to quartet populations which is approximately given by ratio 
+amplitudes of the slow and fast lifetime components of our spectrum i.e. A2:A1. Also important was to know the prompt lifetime 
+which is physically euuivalent to the hyperfine tranition rate. So the new fit function was just an exponential 
+decay of two component lifetimes (a slow and a fast). It was re arranged in such a way, that first parameter gave the quartet 
+amplitude A1 which is the number of fusion neutrons in the data set and has no physical significance and just depends 
+on the size of data files used. The second parameter is the ratio amplitudes of the slow and fast lifetime components 
+of our spectrum which is A2:A1 and the third parameter is the prompt lifetime. The last two parameters are of great 
+physical significance to our experiment.
+%\end{document}
+
+%%%% end of eigenvalue.tex
+
+%Old part - must be modified as it is from run 3
+  \\
+\textbf{Number of fusion neutrons}\\The yield of fusion neutron is ~ 0.0305 per muon.
+ Most of the runs were about a duration of 3 minutes. 
+The number of muons stopped per sec in the TPC is 1.0e4 and considering the above mentioned yield (i.e. 0.03 per muon) 
+we get approx. 5.4e4 fusion neutrons. But since the detector efficiency for our parasitic configuration is 1$\%$ 
+(detectors are about 35 cm from the target) we should have about 540 fusion neutrons from all channels for a single 
+run. But this includes background neutrons and so it may not match with the numberof fusion neutrons given by A1 of 
+our fit function. 
+
+\section{Capture Neutron Analysis:}
+Capture neutrons on the other hand have a much lower yield ~ 0.0015 per muon and a continuous energy spectrum 
+extending up to 53 MeV which peaks around 1-3 MeV. So to determine capture neutrons we applied a  cut of neutron energies greater than 2.45 MeV to the time spectrum of all neutron pulses.\\
+
+I fitted this spectrum first with two rates. The fit results are shown in fig.6 (elog:127 attmt 5). It has two components:\\
+(i) short lifetime component ~ 0.007~ns$^{-1}$ \\
+(ii) long lifetime component ~ 0.00072~ns$^{-1}$ 
+\\
+\\If I use three rates in my function I get a better chi-sq - (Not sure if I should mention this as I don't really understand
+ why it improves the fit???. The fit results with three rates is shown in fig.7(elog:127 attmt 6 - not sure and so I did not include the fig)\\
+(i) 2 short lifetime components of the same order ~ 0.0097~ns$^{-1}$  and ~0.0014~ns$^{-1}$\\
+(ii) long lifetime component ~ 0.00037~ns$^{-1}$ 
+%\begin{figure}[h]
+%\begin{center}
+%\includegraphics[width=0.6\linewidth]{fitCap100.png}
+%\caption{Time spectrum for capture neutrons.}
+%\label{fig:fitCap100}
+%\end{center}
+%\end{figure}
+
+This should enable us to extract the muon disappearance rate that would further help us to determine the muon capture rate of deuterium $\Lambda_d$, but the level of statistics is probably not good enough for this study. Currently I am processing a 1000 runs for a more accurate study.\\
+
+%\newpage
+Note: All values of rates, yields, energies etc. used above have been taken from the proposal.
+
+
+%\end{document}

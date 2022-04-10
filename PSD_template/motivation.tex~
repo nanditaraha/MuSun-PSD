@@ -1,0 +1,311 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[margin=2.5cm]{geometry}
+
+
+\begin{document}
+\section*{Pulse digitization using template fitting }
+% command to make a pdf is - pdflatex *.tex
+% For one line comments - still learning latex 
+% A rough summary of Physics Motivation of the expt \\
+
+The neutron signal detected by the 8 neutron detectors were read by 16 - bit FADC using a clock of sampling speed of 170 MHz ~ 5.88 ns. Pulse templates were created from the raw waveform samples for each detector individually. These were the average pulse shapes of raw samples pulses with a constant pedestal and negligible background and pileup (pileup was later removed using appropiate cuts). The sample pulses were aligned wrt to a true time. We defined a pseudotime within a clock tick given by the expression,\\
+\begin{equation}
+t' = \frac{2}{\pi}tan^{-1}(\frac{S_m - S_{m-1}}{S_m - S_{m+1}})
+\end{equation} 
+where each tick was finely divided into a million bins. In the above expression m is the index of the maximum/peak sample and $S_m$ is the value of the peak sample.The true time t of the pulse is a complicated function of pseudotime and so it was determined from the pseudotime considering it to be an increasing function in a short interval of time $\tau'$. Also the distribution p(t) of true time has to be independent of the clock speed and uniform. Thus, by finding the running integral of pseudotime $t'$ and normalizing it gave a mapping between the true time t and pseudotimes. The true time as a function of pesudotime is given by the following equation,\\
+\begin{equation} 
+t(\tau) = (5.88\ ns)\frac{\int_0^\tau p(\tau')d\tau'}{\int_0^{5.88\ ns} p(\tau')d\tau'}
+\end{equation} 
+The true times resolve to one tenth of a clock tick.A distribution of pseudotimes and true times for one channel is shown in the figure ~\ref{pseudo}:
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.4\textwidth}{!}{\includegraphics{pseudo.png}} 
+\resizebox*{0.4\textwidth}{!}{\includegraphics{pseudoTrue.png}} 
+\end{tabular}
+\caption{Pseudotime $t'$ distribution of channel 1 for gamma rays (left) 
+and true time mapped from normalized running integral of pseudotimes (right)}
+\label {pseudo}
+\end{center}
+\end{figure}
+\subsection*{Template design procedure}
+The template is an average pulse shape for neutrons and gamma pulses seperately for each individual channel. The neutron gamma pulses were tagged from previous pulse shape discrimination method based on areas the tails of each pulse. As neutrons have a longer fall time than gamma rays their tail area area is greater than that of gamma rays and this was used to extract neutrons and gammas in a region were they were well defined (2000 - 7000 energy channels). The plots for true times and pseudotimes were also generated using the same energy cut so 
+that the number of events in both the template and the pseudotime plots are consistent.
+The number of pulse samples were chosen to be such that it was almost pileup free and the pedetals could be extracted from it. Thus we picked up islands of size greater than 60 samples.
+The pedestal was determined as the central value of the first three ADC samples in a particular island. 
+Each template was created by time aligning them around the 14th bin (chosen randomly) with the true time removed from each clock tick and then filling the template histogram with pedestal subtracted normalized ADC sample corresponding to these time bins.
+The normalization was also done by subtracting the pedestal. An illustration of a neutron template and gamma template for channel 1 is shown in figure ~\ref{temp}.\\
+\emph {{Should I show a figure of all 8 ndets for neutron and gamma templates?}}
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.39\textwidth}{!}{\includegraphics{neutronTemp1.png}} &
+\resizebox*{0.4\textwidth}{!}{\includegraphics{gammaTemp1.png}} 
+\end{tabular}
+\caption{Template channel 1 for neutrons (left) 
+and Template channel 1 for gamma rays (right)}
+\label {temp}
+\end{center}
+\end{figure}
+
+
+\subsection*{Energy Dependence of templates}
+The tails of neutron pulses depend on energy especially in the low energy region. Low energy pulses have a larger fall time for neutrons and so a longer tail is expected.
+To test and understand this, templates of three different enrgy ranges were created. The regions chosen were as follows:
+\begin {itemize}
+\item 2000 - 3500 channels corresponding to low energy
+\item 3500 - 5500 channels corresponding to intermediate energy
+\item 5500 - 7000 channels corresponding to high energy
+\end {itemize}
+Figure ~\ref{energyTemp} shows the template of the three energy ranges stated above for neutrons and gammas respectively. 
+The three ranges are normalized and overlayed so that they can be compared.
+It is evident that the neutron templates are very slightly energy dependent (but this is practically insignificant).
+The gamma templates do not depenend on energy. Thus, we decided to have a single template for all energy ranges.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.39\textwidth}{!}{\includegraphics{neutronEnergyTemp1.png}} 
+\resizebox*{0.39\textwidth}{!}{\includegraphics{gammaEnergyTemp1.png}} 
+\end{tabular}
+\caption{  Three energy dependent neutron templates(left) and gamma templates (right).}
+\label {energyTemp}
+\end{center}
+\end{figure}
+
+\subsection*{Minimization}
+It is assumed that we have a single pulse on an island and the function that is minimized is given by,
+\begin{equation} 
+D = \sum_{i \in \text{samples}}[S_i - P - Af_i(t)]^2
+\end{equation} 
+where S is the measured sample of a pulse and $f_j(t_j) $ is the average pulse template created above.\\
+{\bf Fit Parameters:} The time $t_j$, pedestal subtracted area $A_j$ and pedestal P of the pulse were used as independent fit parameters to 
+begin with.
+Initially root and MINUIT for fitting the pulses, but the three parameter fit was very time consuming so a different method was tried.
+Besides the chi square was not very good and the fit appeared to depend on the version of root used.\\
+The figure ~\ref{pulseFit} shows a neutron pulse (by neutorn pulse, I mean a pulse tagged as a neutron from our previous analysis to 
+distinguish neutrons from gamma rays using tail and total areas of the pulse) fitted by a neutron template and a gamma ray template.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{pulseN_root.png}} 
+\end{tabular}
+\caption{ A neutron pulse first fitted with a neutron template(left) and then a gamma template (right), using root fit.}
+\label{pulseFit}
+\end{center}
+\end{figure}
+
+
+In the new algorithm a single parameter fit was used. The fit parameter used was only $t_j$. As it is evident that the partial
+derivatives of pedestal P and area $A_j$ are both linearly dependent of the minimization function R they can be solved
+analytically by evaluating the partial derivative of eqaution 3 wrt P and $A_j$ and setting them to zero at the minimum of D.
+Thus the partial derivatives are given by,
+\begin{equation} 
+\frac{\partial D}{\partial P} = -2[S - P - \sum_{j \in \text{pulses}}A_jf_j(t_j)] = 0
+\end{equation} 
+
+\begin{equation} 
+\frac{\partial D}{\partial A_j} = -2  f_j(t_j)[S - P - \sum_{j \in \text{pulses}}A_jf_j(t_j)] = 0
+\end{equation} 
+
+This would reduce D to a singal variable/parameter function of $t_j$, which was minimized using Brent's method.
+The initial guess for $t_j$, was taken to be the true time of the peak sample evaluated from the method described above. 
+We used root function to implement Brent minimization.\\
+
+{\bf Fit Function/Template:} No analytical fit function was used. Instead bin content read from a root histogram 
+i.e. the average template  $f_j(t_j) $ was used for fitting individual pulses. Some properties of the fit function are listed below:
+
+\begin{itemize}
+\item The errors were ignored and wieghts were set to unity.
+\item Overflowing points of ADC counts were ignored (rejected while fitting)
+\item Interpolation between bins were used to generate a more continous function for improved fit results
+\item Fit range used from 5 samples below the peak sample to 50 samples after the peak i.e. about 50 samples were used.
+(NOTE: Initially 25 samples were used, which did not produce a good chi square and so the fit range was increased which 
+improved the fit drastically).
+\end{itemize}
+Using the Brent's minimization fit method instead of three parameter root fit using MINIUT had several advantages.
+It was much faster than root fit as the number of parameters reduced. The chi squares showed a great improvement.
+The fit area using Brent's method (name it as Brent's area), fitted peak sample and pedestals compared very well with the root fit.
+Figure ~\ref{brentFit} shows the fit using Brent method on a neutron pulses fitted with neutron and gamma ray templates.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.39\textwidth}{!}{\includegraphics{pulseN_brent.png}} 
+\resizebox*{0.39\textwidth}{!}{\includegraphics{pulseG_brent.png}} 
+\end{tabular}
+\caption{  A neutron pulse first fitted with a neutron template(left) and then a gamma template (right), using Brent's minimization.}
+\label{brentFit}
+\end{center}
+\end{figure}
+Next comparisons of $t_j$,$A_j$ and P were done from the output of  both fit methods.
+The plots shown in figure ~\ref{parameters} illustrates the comparison of $t_j$,$A_j$ and P 
+from roots 3 parameter  minimization using MINUIT and Brent's methods respectively.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{parameters.png}} 
+\end{tabular}
+\caption{ Comparison of fit parameters}
+\label {parameters}
+\end{center}
+\end{figure}
+
+\subsection*{Chi Square distribution using Brent's algorithm}
+Using Brent's method, each pulse was first fitted with a neutron template and then a gamma template and the chi squares were found. 
+Most logically the pulse was considered to be a gamma ray or a neutron depending on which template gave a lower chi square. 
+This method could help in finding a better pulse shape discrimination specially at low energies and 
+facilitate  a comparative study of pulse shape discrimination between  using total to tail ratios and this method of chi square minimization.
+Besides it could also help in solving the problem of cut off pulses by rejecting points above 8191 ADC counts of the FADC's and help get rid of noise by ejecting points below a certain range (done by fitting only above pedestals).
+
+An initial plot of chi square difference of pulses fitted by a neutron template and gamma ray template versus energy is shown in figure ~\ref{chiSq}.\\
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.46\textwidth}{!}{\includegraphics{chi.png}} 
+\end{tabular}
+\caption{Plot of chi squared difference between neutron and gamma templates with pulse energy(total area)}
+\label {chiSq}
+\end{center}
+\end{figure}
+The positive chi square difference were gamma rays and the negative part of this plot were neutrons.
+Many strange pulses were also a part of this. A comparative study of the figure of merit of the two methods
+(tail to total areas and this one) showed no significant difference oweing to the strange features/pulses that contaminated the data.
+
+\subsection*{Correlation between bins}
+Initially weights of all bins were set to unity including emplty bins,
+whereas it could be possible that pedestals can have different weights compared to the peaks or tails. 
+It was thought that tails of neutron pulses being energy dependent (especially at low energies) might have different weights too. But this possibility was rejected based on the negligible effect found on energy which could falsely or not efficiently detect neutrons.
+Also it was assumed that the data distribution of the bins are uncorrelated. 
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.87\textwidth}{!}{\includegraphics{correlated.png}} 
+\end{tabular}
+\caption{ Residues of fitted function and pulses for consecutive bins for neutrons(left) and Gamma rays(right)}
+\label {correlated}
+\end{center}
+\end{figure}
+ As the energy of a photon could be distributed in more than one bin, it was possible that data read by the clock may be distributed in turn which might lead to correlation between bins.
+The first step in our effort to find correlation between bins, was to find the difference between the 
+ADC counts read by the pulses and value of fit function at that point. This difference was called the residue.
+Histograms were by fitting the neutrons with neutron templates and gamma with gamma templates in the unambiguous region of
+(2000 - 7000) channels. Then the residues (defined above)of consecutive bins were plotted as shown in figure ~\ref{correlated}. 
+Figure ~\ref{correlated} takes a large scale into account to get an idea of the big picture of the distribution of residues.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.36\textwidth}{!}{\includegraphics{shortPulse.png}} 
+\resizebox*{0.36\textwidth}{!}{\includegraphics{pileupPulse.png}} 
+\end{tabular}
+\caption{ Pulses with island size less than the fit range}
+\label {pulse}
+\end{center}
+\end{figure}
+The plots in figure ~\ref{correlated} revealed that the gamma rays displayed a much less 
+(almost negligible)correlation compared to neutrons. 
+Individual neutron pulses were observed in the region where the distribution was not symmetric
+as we thought there could be some correlation between the successive bins.
+ But instead it was found that pulses corresponding to these regions had a bad chi square due to some reason.
+The major reasons for a bad fit were as follows:
+\begin {itemize}
+\item Noise that had no real pulse
+\item Pulses sitting on islands that were less than the fit range
+\item Pileup pulses - i.e two pulse on an island which were reasonbly far apart and so could be handled
+\item two pulse on an island which were reasonbly far apart and so could be handled
+\end {itemize}
+
+%Edit
+Badly fit pulses (short islands) with range changed:
+
+
+
+After Correcting for double pulses (pile up) 
+Extremely close double pulses on an island could not be taken care of. This is shown in figure 
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.42\textwidth}{!}{\includegraphics{doublePulse.png}} 
+\end{tabular}
+\caption{Extremely close double pulses on an island }
+\label {doublePulse}
+\end{center}
+\end{figure}
+The residue distribution, after taking care of areas for double pulses 1000000 muon events of a run with no cuts is shown below:
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.87\textwidth}{!}{\includegraphics{correlated1.png}} 
+\end{tabular}
+\caption{Residues of fitted function and pulses for nth and (n+1)th bin for neutrons(left) and Gamma rays(right) - Improved version}
+\label {correlated1}
+\end{center}
+\end{figure}
+
+In a summary we did the following to get a better picture of the residues Vs. bin number
+
+    Found residues using fitted time - from Brent's  method
+    Found residues for bin data correlation only for the fitted region of the pulse
+    Changed fit region for islands shorter than the fit region
+    Took care of double pulses on an island by using the initial guess of area to be just the fit region
+    Finally we could not fix the extremely close double pulses as shown above so we decided to plot only the useful region of the residues i.e. +/- 200 and bin more finely as shown in the plots below
+
+
+Residue VS. Bin for all Neutron channels. Range 5 to 30
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{correlatedN.png}} 
+\end{tabular}
+\caption{ Residues of each bin in fit range 5 to 30 - neutrons - all detectors}
+\label {correlatedN}
+\end{center}
+\end{figure}
+
+
+Residue VS. Bin for all Gamma rays all channels. Range 5 to 30
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{correlatedG.png}} 
+\end{tabular}
+\caption{ Residues of each bin in fit range 5 to 30 - Gamma rays - all detectors}
+\label {correlatedG}
+\end{center}
+\end{figure}
+
+Residue VS. Bin for all Neutron channels. Range 5 to 55
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{correlatedN55.png}} 
+\end{tabular}
+\caption{ Residues of each bin in fit range 5 to 55 - neutrons - all detectors }
+\label {correlatedN55}
+\end{center}
+\end{figure}
+
+
+Residue VS. Bin for all Gamma rays all channels. Range 5 to 55
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cc}
+\resizebox*{0.9\textwidth}{!}{\includegraphics{correlatedG55.png}} 
+\end{tabular}
+\caption{ Residues of each bin in fit range 5 to 55 - Gamma rays - all detectors}
+\label {correlatedG55}
+\end{center}
+\end{figure}
+
+\emph {Plan to add: Study of correlation b/w bins. PSD with chisq diff and tail total. FOM of each and compare}
+
+
+\end{document}

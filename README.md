@@ -17,10 +17,16 @@ The code uses MINUIT for fitting and based on the &chi;<sup>2</sup>/NDF we derte
 Shown below is a neutron pulse fitted with a neutron template (left) and a gamma template (right):</br>
 <img width="685" alt="Screen Shot 2022-04-10 at 8 16 44 AM" src="https://user-images.githubusercontent.com/27436642/162617636-26e03430-858d-42c9-a262-a676366c8931.png"></br>
 This lower &chi;<sup>2</sup>/NDF with the neutron template fit clearly shows that it is a nuetron pulse.
+
+---------------------------------------------------------------------------------------------------------------------
+
 ## Instructions for compiling and running the code
 #### Must have at C++ and ROOT 6.24/06  installed.
 All code is in C/C++ and requires root. To compile follow the simple instructions below</br>
-& make clean</br>
-& make</br>
-& ./mu </br>
-The basic code runs with the executable mu but this has a few options too (if you want less events).
+$ make clean</br>
+$ make</br>
+$ ./mu </br>
+The basic code runs with the executable mu but this has a few options too (if you want less events).</br>
+We also have an executable called mta (muon tree analysis) that requires data saves in root trees to implement.
+
+---------------------------------------------------------------------------------------------------------------------

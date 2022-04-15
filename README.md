@@ -19,7 +19,7 @@ Shown below is a neutron pulse fitted with a neutron template (left) and a gamma
 This lower &chi;<sup>2</sup>/NDF with the neutron template fit clearly shows that it is a nuetron pulse.
 ## Instructions for compiling and running the code
 #### Must have at C++ and ROOT 6.24/06  installed.
-All code is in C and requires root to compile. Follow the simple instructions below</br>
+All code is in C/C++ and requires root. To compile follow the simple instructions below</br>
 & make clean</br>
 & make</br>
 & ./mu </br>

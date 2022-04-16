@@ -1,4 +1,4 @@
-pc_timeB, tpc_time;
+//pc_timeB, tpc_time;
 double tpc_fit;
 double tpc_integral, tpc_integral1,tpc_integral2,tpc_amp,tpc_amp1,tpc_amp2,tpc_amp3 ; // store tpc wfd pulses integral & amplitude
 double fusionAmp = 0.;
